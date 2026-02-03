@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.InsaatCebimde" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">#355261</item>
+        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorOnPrimary">@color/white</item>
+
+        <!-- Status bar (Bildirim Paneli) Ayarları -->
+        <item name="android:statusBarColor">#FFFFFF</item>
+
+        <!-- KRİTİK DEĞİŞİKLİK: Burayı FALSE yapıyoruz -->
+        <!-- True olursa uygulama panelin arkasına geçer, False olursa panelin altından başlar -->
+        <item name="android:windowTranslucentStatus">true</item>
+
+        <!-- Toolbar'ı (ActionBar) tamamen kaldırmak için -->
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+
+        <!-- Diğer ayarlar -->
+        <item name="colorSecondary">@color/teal_200</item>
+        <item name="colorSecondaryVariant">@color/teal_700</item>
+        <item name="colorOnSecondary">@color/black</item>
+    </style>
+</resources>
