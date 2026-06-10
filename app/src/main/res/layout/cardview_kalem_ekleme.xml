@@ -1,0 +1,223 @@
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:cardCornerRadius="12dp"
+    app:strokeColor="#333333"
+    app:strokeWidth="2dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="8dp"
+        >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilJobName"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:hint="İş Adı"
+                app:boxStrokeColor="#3F51B5"
+                app:hintTextColor="#3F51B5"
+                android:layout_weight="1">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etkalemAdi"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="#333333" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilJobType"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:hint="Tür Adı"
+                app:boxStrokeColor="#3F51B5"
+                app:hintTextColor="#3F51B5"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etTurAdi"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="#333333" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+
+            <Spinner
+                android:id="@+id/spinner2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDeleteCard"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:iconGravity="textEnd"
+                app:icon="@drawable/remove_circle"
+                app:iconSize="32dp"
+                app:iconTint="#F44336" />
+
+            <!-- Removed redundant and confusing EditText -->
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+
+            <CheckBox
+                android:id="@+id/cbIsCustom"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textSize="11sp"
+                android:text="Yeni Kalem\n veya Yeni Tür" />
+
+            <CheckBox
+                android:id="@+id/cbEditTemplate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                 android:textSize="11sp"
+                android:text="Şablonu\nDüzenle" />
+
+
+            <!-- Removed redundant and confusing EditText -->
+        </LinearLayout>
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Çizimler"
+            android:textColor="#252552"
+            android:textSize="12sp"
+            android:layout_marginTop="2dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/btnUploadImage"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0"
+                android:drawableStart="@drawable/ic_photo"
+                android:drawableTint="#3F51B5"
+                android:gravity="center"
+                android:text="RESİM\nYÜKLE"
+                android:textColor="#3F51B5"
+                app:cornerRadius="12dp"
+                app:iconGravity="top"
+                app:strokeColor="#3F51B5" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvImages"
+                    android:layout_weight="1"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    android:nestedScrollingEnabled="false"
+                    android:layout_marginStart="8dp" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvLocalImages"
+                android:layout_weight="1"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:nestedScrollingEnabled="false"
+                android:layout_marginStart="8dp" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#333333"
+            android:layout_marginVertical="12dp"/>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Malzemeler"
+                android:textColor="#252525"
+                android:textSize="12sp"/>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAddSubItem"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="MALZEME EKLE"
+                android:layout_alignParentEnd="true"
+                android:textColor="#3F51B5"
+                app:icon="@android:drawable/ic_input_add"
+                app:iconTint="#3F51B5"
+                />
+        </RelativeLayout>
+
+        <LinearLayout
+            android:id="@+id/materialContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="8dp"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvMaterials"
+                android:layout_weight="1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:nestedScrollingEnabled="false"
+                android:layout_marginStart="8dp" />
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

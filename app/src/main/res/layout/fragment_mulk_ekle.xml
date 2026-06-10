@@ -1,110 +1,237 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".mulkEkleFragment"
-    android:background="@drawable/hizmetlerinbg">
+    android:background="@color/appBG"
+    android:padding="16dp">
 
-
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:paddingBottom="80dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-
-        <TextView
-            android:id="@+id/tvBaslik"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:text="'Mulk'Ekle"
-            android:textSize="40sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.495"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/mulkTuru"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="24dp"
-            android:text="$gelenflagsTuru"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvBaslik" />
+            <TextView
+                android:id="@+id/tvWizardTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mülk Üretim Sihirbazı"
+                android:textColor="@android:color/white"
+                android:textSize="24sp"
+                android:textStyle="bold" />
 
-        <EditText
-            android:id="@+id/editTextText"
-            android:layout_width="150dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_marginBottom="26dp"
-            android:ems="10"
-            android:inputType="text"
-            android:text="TÜRÜ"
-            app:layout_constraintBottom_toTopOf="@+id/editTextText2"
-            app:layout_constraintStart_toEndOf="@+id/mulkTuru"
-            app:layout_constraintTop_toBottomOf="@+id/tvBaslik"
-            app:layout_constraintVertical_bias="0.212" />
+            <TextView
+                android:id="@+id/tvWizardSubTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Seri ve otomatik mülk yapılandırması"
+                android:textColor="#8E8E93"
+                android:textSize="14sp" />
 
-        <EditText
-            android:id="@+id/editTextText2"
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            android:layout_marginTop="120dp"
-            android:ems="10"
-            android:inputType="number"
-            android:text="ADET"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.531"
-            app:layout_constraintStart_toEndOf="@+id/textView24"
-            app:layout_constraintTop_toBottomOf="@+id/checkBox" />
+            <!-- İsimlendirme Ayarları Kartı -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                app:cardBackgroundColor="#1A1A1A"
+                app:cardCornerRadius="16dp"
+                app:strokeColor="#333333"
+                app:strokeWidth="1dp">
 
-        <TextView
-            android:id="@+id/textView24"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="24dp"
-            android:layout_marginTop="260dp"
-            android:text="KAÇ ADET"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-        <TextView
-            android:id="@+id/textView25"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="24dp"
-            android:layout_marginBottom="413dp"
-            android:text="TextView"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="@+id/editTextText2"
-            app:layout_constraintTop_toBottomOf="@+id/editTextText2" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="İsimlendirme Ayarları"
+                        android:textColor="#FF9800"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
-        <CheckBox
-            android:id="@+id/checkBox"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="16dp"
-            android:text="yenitür"
-            app:layout_constraintStart_toEndOf="@+id/editTextText"
-            app:layout_constraintTop_toBottomOf="@+id/tvBaslik" />
+                    <com.google.android.material.button.MaterialButtonToggleGroup
+                        android:id="@+id/toggleMode"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        app:checkedButton="@id/btnModeNumeric"
+                        app:singleSelection="true">
 
-        <Spinner
-            android:id="@+id/spinner"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="1dp"
-            android:layout_marginTop="36dp"
-            android:layout_marginEnd="1dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.443"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/editTextText" />
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnModeNumeric"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="SAYI (1, 2, 3)"
+                            android:textColor="@android:color/white"
+                            app:strokeColor="#333333" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnModeAlpha"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="HARF (A, B, C)"
+                            android:textColor="@android:color/white"
+                            app:strokeColor="#333333" />
+                    </com.google.android.material.button.MaterialButtonToggleGroup>
 
-</FrameLayout>
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilPrefix"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:hint="İsim Öneki (Örn: Daire-)"
+                        app:boxStrokeColor="#FF9800"
+                        app:hintTextColor="#FF9800">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etPrefix"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Daire-"
+                            android:textColor="@android:color/white" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilStartValue"
+                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="Başlangıç"
+                            app:boxStrokeColor="#FF9800"
+                            app:hintTextColor="#FF9800">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etStartValue"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="1"
+                                android:textColor="@android:color/white" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilStepValue"
+                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:layout_weight="1"
+                            android:hint="Artış (Adım)"
+                            app:boxStrokeColor="#FF9800"
+                            app:hintTextColor="#FF9800">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etStepValue"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="1"
+                                android:textColor="@android:color/white" />
+                        </com.google.android.material.textfield.TextInputLayout>
+                    </LinearLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilCount"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:hint="Kaç Adet Üretilecek?"
+                        app:boxStrokeColor="#FF9800"
+                        app:hintTextColor="#FF9800">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etCount"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="number"
+                            android:text="10"
+                            android:textColor="@android:color/white" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Şablon Seçimi Kartı -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:cardBackgroundColor="#1A1A1A"
+                app:cardCornerRadius="16dp"
+                app:strokeColor="#333333"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Mülk Tipi Şablonu"
+                        android:textColor="#FF9800"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Üretilecek mülklere hangi işler atansın?"
+                        android:textColor="#8E8E93"
+                        android:textSize="12sp" />
+
+                    <Spinner
+                        android:id="@+id/spinnerUnitType"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/bg_spinner_popup"
+                        android:padding="8dp" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+    </ScrollView>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnProduce"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:layout_marginBottom="16dp"
+        android:text="SİSTEME KAYDET VE ÜRET"
+        android:textColor="@android:color/white"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:backgroundTint="#FF9800"
+        app:cornerRadius="16dp"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -9,10 +9,18 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import android.app.Dialog
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
+import android.widget.Button
+import android.widget.EditText
+import android.widget.Toast
+import com.sorodeveloper.insaatcebimde.model.ProjectApplication
+import com.sorodeveloper.insaatcebimde.model.User
+
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
@@ -27,7 +35,6 @@ import kotlin.jvm.java
 
 class firstFragment : Fragment() {
     private lateinit var binding: ActivityFirstFragmentBinding
-    var SERVER_KEY: String? = null
     private lateinit var auth: FirebaseAuth
     private lateinit var insaatlarRecyclerview: RecyclerView
     private lateinit var insaatlarArrayList: ArrayList<insaat>
@@ -50,7 +57,8 @@ class firstFragment : Fragment() {
         insaatlarRecyclerview.layoutManager = LinearLayoutManager(context)
         insaatlarRecyclerview.setHasFixedSize(true)
         insaatlarArrayList = arrayListOf<insaat>()
-        binding.btnInsaatekle.setOnClickListener{
+        
+        binding.btnInsaatekle.setOnClickListener {
             startNewActivity()
         }
 
@@ -59,6 +67,8 @@ class firstFragment : Fragment() {
 
         return binding.root
     }
+
+
     private fun arama(){
         binding.apparamacubuk.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -82,28 +92,67 @@ class firstFragment : Fragment() {
         activity.startActivity(intent)
     }
     private fun getInsaatData() {
+        val currentUser = auth.currentUser ?: return
+        
+        // Önce kullanıcının yetki map'ini çekelim
+        FirebaseDatabase.getInstance().getReference("users").child(currentUser.uid)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(userSnapshot: DataSnapshot) {
+                    val user = userSnapshot.getValue(User::class.java)
+                    val userPermissions = user?.projectPermissions ?: emptyMap()
+                    
+                    // Kullanıcı verisini çektikten sonra projeleri dinlemeye başla
+                    listenToProjects(userPermissions)
+                }
 
+                override fun onCancelled(error: DatabaseError) {
+                    Log.e("TAG", "User verisi alınamadı: ${error.message}")
+                }
+            })
+    }
+
+    private fun listenToProjects(userPermissions: Map<String, List<com.sorodeveloper.insaatcebimde.model.MatrixPermission>>) {
       databaseReference?.addValueEventListener(object : ValueEventListener {
           override fun onDataChange(snapshot: DataSnapshot) {
+              if (!isAdded) return
 
               insaatlarArrayList.clear()
 
               val aramaa = binding.apparamacubuk.text.toString().toLowerCase()
 
               for (insaatSnapshot in snapshot.children) {
-                      val insaat = insaatSnapshot.getValue(insaat::class.java)
-                      val insaatAdi = insaat?.insaatAdi?.toLowerCase()
+                      // Since properties are under "genelBilgiler", let's parse it correctly
+                      val genelBilgiler = insaatSnapshot.child("genelBilgiler")
+                      
+                      val insaatModel = insaat(
+                          insaatAdi = genelBilgiler.child("insaatAdi").getValue(String::class.java),
+                          serino = genelBilgiler.child("seriNo").getValue(String::class.java),
+                          muteahhitAdi = genelBilgiler.child("muteahhitAdi").getValue(String::class.java),
+                          muteahhitMail = genelBilgiler.child("muteahhitMail").getValue(String::class.java),
+                          muteahhitTel = genelBilgiler.child("muteahhitTel").getValue(String::class.java),
+                          il = genelBilgiler.child("il").getValue(String::class.java),
+                          ilce = genelBilgiler.child("ilce").getValue(String::class.java),
+                          mahalle = genelBilgiler.child("mahalle").getValue(String::class.java),
+                          adres = genelBilgiler.child("adres").getValue(String::class.java)
+                      )
+                      
+                      val insaatAdiStr = insaatModel.insaatAdi?.toLowerCase()
+                      val projectId = insaatModel.serino
 
-                      if (insaatAdi != null && insaatAdi.contains(aramaa)) {
-                          insaatlarArrayList.add(insaat)
-
-                  }
+                      if (projectId != null) {
+                          // Matrix Yetkilendirme Kontrolü: 
+                          // Kullanıcının bu projede yetkisi var mı? 
+                          // Eğer userPermissions map'inde bu projectId key'i varsa projeyi listeye ekle.
+                          // Ayrıca arama filtresine de uymalı.
+                          val hasPermissionForProject = userPermissions.containsKey(projectId)
+                          
+                          if (hasPermissionForProject && insaatAdiStr != null && insaatAdiStr.contains(aramaa)) {
+                              insaatlarArrayList.add(insaatModel)
+                          }
+                      }
               }
               insaatlarRecyclerview.adapter = CustomAdapter(insaatlarArrayList, requireContext())
               insaatlarRecyclerview.adapter?.notifyDataSetChanged()
-            /*  var sıralıList =
-                  hizmetlerArrayList.sortedWith(compareBy({ it.HizmetKalanSure }))
-              hizmetlerRecyclerview.adapter = CustomAdapter(sıralıList)*/
           }
 
           override fun onCancelled(error: DatabaseError) {
@@ -112,5 +161,6 @@ class firstFragment : Fragment() {
 
       })
     }
+
 
 }

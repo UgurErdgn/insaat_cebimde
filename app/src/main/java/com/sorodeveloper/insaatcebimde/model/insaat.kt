@@ -11,3 +11,4 @@ class insaat(
     var mahalle:String? =null,
     var adres:String? =null,
 )
+

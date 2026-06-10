@@ -1,0 +1,39 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    android:layout_marginBottom="4dp">
+
+    <EditText
+        android:id="@+id/etMaterialAmount"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="Adet"
+        android:layout_weight="1"
+        android:inputType="number"
+        android:textColor="#FFFFFF"
+        android:textSize="13sp"
+        android:backgroundTint="#444444"/>
+
+    <EditText
+        android:id="@+id/etMaterialType"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="8dp"
+        android:hint="Tür (örn: kova boya)"
+        android:inputType="text"
+        android:textColor="#FFFFFF"
+        android:textSize="13sp"
+        android:backgroundTint="#444444"/>
+
+    <ImageView
+        android:id="@+id/btnDeleteMaterial"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_gravity="center_vertical"
+        android:padding="4dp"
+        android:src="@drawable/remove_circle"
+        app:tint="#F44336" />
+</LinearLayout>

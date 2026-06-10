@@ -7,9 +7,16 @@ import android.text.TextUtils
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import com.sorodeveloper.insaatcebimde.databinding.ActivityInsaateklemeBinding
+import com.sorodeveloper.insaatcebimde.model.MatrixPermission
+import com.sorodeveloper.insaatcebimde.model.ProjectNode
+import com.sorodeveloper.insaatcebimde.model.ProjectNodeType
+import com.sorodeveloper.insaatcebimde.model.User
 
 class insaatEklemeActivity : AppCompatActivity() {
     lateinit var binding: ActivityInsaateklemeBinding
@@ -38,9 +45,9 @@ class insaatEklemeActivity : AppCompatActivity() {
             var ilce = binding.kytinsaatilce.text.toString().trimEnd()
             var mahalle = binding.kyinsaatmahalle.text.toString().trimEnd()
             var adres = binding.kyttamadres.text.toString().trimEnd()
-            var muteahhitAdi = binding.kyttamadres.text.toString().trimEnd()
-            var muteahhitMail = binding.kyttamadres.text.toString().trimEnd()
-            var muteahhitTel = binding.kyttamadres.text.toString().trimEnd()
+            var muteahhitAdi = binding.kytmuteahhitadi.text.toString().trimEnd()
+            var muteahhitMail = binding.kytmuteahhitmail.text.toString().trimEnd()
+            var muteahhitTel = binding.kytmuteahhittelno.text.toString().trimEnd()
 
 
             if (TextUtils.isEmpty(insaatadi)) {
@@ -83,30 +90,57 @@ class insaatEklemeActivity : AppCompatActivity() {
                 val orjinalText = insaatadi
                 val result = capitalizeWords(orjinalText)
 
-                val currentUserDb =
-                    result.let { task1 -> databaseReference?.child(serino)?.child("genelBilgiler") }
+                val currentUserDb = databaseReference?.child(serino)?.child("genelBilgiler")
+                val currentUserDsb = databaseReference?.child(serino)
 
-                val currentUserDsb =
-                    result.let { task1 -> databaseReference?.child(serino) }
+                currentUserDb?.child("adres")?.setValue(adres)
+                currentUserDb?.child("il")?.setValue(il)
+                currentUserDb?.child("ilce")?.setValue(ilce)
+                currentUserDb?.child("insaatAdi")?.setValue(result)
+                currentUserDb?.child("mahalle")?.setValue(mahalle)
+                currentUserDb?.child("muteahhitAdi")?.setValue(muteahhitAdi)
+                currentUserDb?.child("muteahhitMail")?.setValue(muteahhitMail)
+                currentUserDb?.child("muteahhitTel")?.setValue(muteahhitTel)
+                currentUserDb?.child("seriNo")?.setValue(serino)
+                
+                currentUserDsb?.child("insaatAdi")?.setValue(result)
 
-
-                currentUserDb?.child("adres")?.setValue(adres).toString()
-                currentUserDb?.child("il")?.setValue(il).toString()
-                currentUserDb?.child("ilce")?.setValue(ilce).toString()
-                currentUserDb?.child("insaatAdi")?.setValue(insaatadi).toString()
-                currentUserDb?.child("mahalle")?.setValue(mahalle).toString()
-                currentUserDb?.child("muteahhitAdi")?.setValue(muteahhitAdi).toString()
-                currentUserDb?.child("muteahhitMail")?.setValue(muteahhitMail).toString()
-                currentUserDb?.child("muteahhitTel")?.setValue(muteahhitTel).toString()
-
-
-                currentUserDb?.child("seriNo")?.setValue(serino).toString()
-                currentUserDsb?.child("insaatAdi")?.setValue(insaatadi).toString()
-
+                val uid = auth.currentUser?.uid
+                if (uid != null) {
+                    val userRef = database?.reference?.child("users")?.child(uid)
+                    userRef?.addListenerForSingleValueEvent(object : ValueEventListener {
+                        override fun onDataChange(snapshot: DataSnapshot) {
+                            if (snapshot.exists()) {
+                                val user = snapshot.getValue(User::class.java)
+                                if (user != null) {
+                                    val updatedPermissions = user.projectPermissions.toMutableMap()
+                                    val projectList = updatedPermissions[serino]?.toMutableList() ?: mutableListOf()
+                                    
+                                    // Grant full access (root location, root job, can delegate)
+                                    projectList.add(MatrixPermission(locationPath = "", jobPath = "", canDelegate = true))
+                                    updatedPermissions[serino] = projectList
+                                    
+                                    userRef.setValue(user.copy(projectPermissions = updatedPermissions))
+                                }
+                            }
+                        }
+                        override fun onCancelled(error: DatabaseError) {}
+                    })
+                    
+                    // Create the root location node for the Universal Project Tree
+                    val rootNode = ProjectNode(
+                        id = serino,
+                        projectId = serino,
+                        name = result,
+                        type = ProjectNodeType.PROJECT,
+                        parentId = null,
+                        path = serino
+                    )
+                    database?.reference?.child("insaatlar")?.child(serino)?.child("locations")?.child(serino)?.setValue(rootNode)
+                }
 
                 Toast.makeText(this, "${result} İnşaat Oluşturuldu", Toast.LENGTH_LONG).show()
                 binding.insaatolustur.isClickable = false
-
             }
 
 

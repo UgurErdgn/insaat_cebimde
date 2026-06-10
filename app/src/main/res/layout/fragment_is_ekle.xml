@@ -1,0 +1,99 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/textbgsiz"
+    android:backgroundTint="#E4E4E4"
+    android:orientation="vertical">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="İş ve Kalem Tanımla"
+                android:textColor="#252525"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="20dp"/>
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="İş Adı (Örn: Mobilya)"
+                app:boxStrokeColor="#3F51B5"
+                app:hintTextColor="#3F51B5">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etMainJobName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="#333333"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnGetKalems"
+                android:text="Mevcut Kalemleri Getır"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"/>
+
+            <View android:layout_width="match_parent" android:layout_height="1dp"
+                android:background="#333333" android:layout_marginVertical="24dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_gravity="center_vertical"
+                android:layout_marginBottom="12dp">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="KALEMLER"
+                    android:textColor="#495057"
+                    android:textStyle="bold"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnAddSubItem"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="KALEM EKLE"
+                    android:layout_alignParentEnd="true"
+                    android:textColor="#3F51B5"
+                    app:icon="@android:drawable/ic_input_add"
+                    app:iconTint="#3F51B5"
+                    />
+
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvKalemler"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"/>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <Button
+        android:id="@+id/btnSaveWholeJob"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_margin="16dp"
+        android:text="SİSTEME KAYDET"
+        android:backgroundTint="#3F51B5"
+        app:cornerRadius="12dp"/>
+</LinearLayout>

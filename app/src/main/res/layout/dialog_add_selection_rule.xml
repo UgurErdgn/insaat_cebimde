@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Kural Detayları"
+        android:textColor="#FF9800"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="Seçimi daraltmak için etap veya blok seçin. Boş bırakırsanız saha genelini tarar."
+        android:textColor="#8E8E93"
+        android:textSize="12sp" />
+
+    <!-- Hierarchy Spinners -->
+    <Spinner
+        android:id="@+id/spSaha"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/bg_spinner_popup"
+        android:padding="8dp" />
+
+    <Spinner
+        android:id="@+id/spEtap"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_spinner_popup"
+        android:padding="8dp"
+        android:visibility="gone" />
+
+    <Spinner
+        android:id="@+id/spBlok"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_spinner_popup"
+        android:padding="8dp"
+        android:visibility="gone" />
+
+    <Spinner
+        android:id="@+id/spDaire"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_spinner_popup"
+        android:padding="8dp"
+        android:visibility="gone" />
+
+    <!-- Range Section -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="Mülk Numarası Aralığı"
+        android:textColor="#FF9800"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
+    <CheckBox
+        android:id="@+id/cbAllUnits"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:checked="true"
+        android:text="Hepsini Seç"
+        android:textColor="@android:color/white" />
+
+    <LinearLayout
+        android:id="@+id/llRangeInputs"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Min"
+            app:boxStrokeColor="#FF9800"
+            app:hintTextColor="#FF9800">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etStartRange"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:textColor="@android:color/white" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:hint="Max"
+            app:boxStrokeColor="#FF9800"
+            app:hintTextColor="#FF9800">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etEndRange"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:textColor="@android:color/white" />
+        </com.google.android.material.textfield.TextInputLayout>
+    </LinearLayout>
+
+</LinearLayout>

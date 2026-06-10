@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/appBG"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Yetki Tanımlama (Matris)"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tvApplicantName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Kullanıcı Adı"
+        android:textColor="@color/detayrenk"
+        android:textSize="14sp"
+        app:layout_constraintTop_toBottomOf="@id/tvTitle" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constrainedHeight="true"
+        app:layout_constraintHeight_max="500dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintBottom_toTopOf="@id/llBottomButtons"
+        app:layout_constraintTop_toBottomOf="@id/tvApplicantName">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Added Permissions List -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Eklenecek Yetkiler"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp"/>
+                
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvPendingPermissions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
+                android:layout_marginBottom="16dp"
+                tools:listitem="@layout/item_pending_permission" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#404040"
+                android:layout_marginBottom="16dp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Yeni Yetki Ekle"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+                android:layout_marginBottom="16dp"/>
+
+            <!-- Location Section -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Lokasyon Seçimi"
+                android:textColor="@color/detayrenk"
+                android:layout_marginBottom="4dp"/>
+
+            <Spinner
+                android:id="@+id/spSaha"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="#404040"
+                android:layout_marginBottom="8dp"/>
+
+            <Spinner
+                android:id="@+id/spEtap"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="#404040"
+                android:visibility="gone"
+                android:layout_marginBottom="8dp"/>
+
+            <Spinner
+                android:id="@+id/spBlok"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="#404040"
+                android:visibility="gone"
+                android:layout_marginBottom="8dp"/>
+
+            <Spinner
+                android:id="@+id/spDaire"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="#404040"
+                android:visibility="gone"
+                android:layout_marginBottom="16dp"/>
+
+            <!-- Jobs Section -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Branş / Disiplin Seçimi"
+                android:textColor="@color/detayrenk"
+                android:layout_marginBottom="4dp"/>
+
+            <Spinner
+                android:id="@+id/spAnaIs"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="#404040"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/tvCategoryLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="İş / Kalem Seçimi"
+                android:textColor="@color/detayrenk"
+                android:layout_marginBottom="4dp"
+                android:visibility="gone"/>
+
+            <Spinner
+                android:id="@+id/spCategory"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="#404040"
+                android:layout_marginBottom="8dp"
+                android:visibility="gone"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvKalemler"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:layout_marginBottom="16dp"
+                android:nestedScrollingEnabled="false" />
+
+            <CheckBox
+                android:id="@+id/cbCanDelegate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:buttonTint="@color/detayrenk"
+                android:text="Bu hesaba yetki devri (delege) izni ver."
+                android:textColor="@color/white"
+                android:layout_marginBottom="16dp"/>
+
+            <Button
+                android:id="@+id/btnAddPermission"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:backgroundTint="#404040"
+                android:textColor="@color/white"
+                android:text="+ Listeye Ekle" />
+
+        </LinearLayout>
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/llBottomButtons"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <Button
+            android:id="@+id/btnCancelGrant"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@android:color/transparent"
+            android:textColor="@color/white"
+            android:text="İptal"
+            android:layout_marginEnd="8dp"/>
+
+        <Button
+            android:id="@+id/btnSubmitGrant"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#34C759"
+            android:textColor="@color/white"
+            android:text="Onayla &amp; Şantiyeye Ekle" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

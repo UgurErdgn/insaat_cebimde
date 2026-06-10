@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/appBG"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/tvEditorTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Mülk Tipi Düzenle"
+        android:textColor="@android:color/white"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilUnitTypeName"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:hint="Mülk Tipi Adı (Örn: A Tipi 3+1)"
+        app:boxStrokeColor="#FF9800"
+        app:hintTextColor="#FF9800"
+        app:layout_constraintTop_toBottomOf="@id/tvEditorTitle">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etUnitTypeName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/white"
+            android:inputType="textCapWords" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <TextView
+        android:id="@+id/tvSelectionTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="Bu tipe dahil edilecek işleri seçin:"
+        android:textColor="#8E8E93"
+        android:textSize="14sp"
+        app:layout_constraintTop_toBottomOf="@id/tilUnitTypeName"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvJobSelection"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintTop_toBottomOf="@id/tvSelectionTitle"
+        app:layout_constraintBottom_toTopOf="@id/btnSaveUnitType" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSaveUnitType"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:text="SİSTEME KAYDET"
+        android:textColor="@android:color/white"
+        android:textStyle="bold"
+        app:backgroundTint="#FF9800"
+        app:cornerRadius="12dp"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -42,17 +42,24 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/apparamacubuk"
             app:layout_constraintVertical_bias="1.0"
-            tools:listitem="@layout/maincardview" />
+            tools:listitem="@layout/cardview_insaatlar" />
 
-        <Button
-            android:id="@+id/btnInsaatekle"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="28dp"
-            android:layout_marginBottom="28dp"
-            android:text="ınsaat ekle"
+            android:orientation="horizontal"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent">
+            
+
+            <Button
+                android:id="@+id/btnInsaatekle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="İnşaat Ekle" />
+        </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

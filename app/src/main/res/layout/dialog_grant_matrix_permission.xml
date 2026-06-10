@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/appBG"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Yetki Ata (Matris Yetkilendirme)"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp"/>
+
+    <TextView
+        android:id="@+id/tvApplicantName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Ahmet Yılmaz için yetki tanımlıyorsunuz."
+        android:textColor="@color/detayrenk"
+        android:textSize="14sp"
+        android:layout_marginBottom="24dp"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Lokasyon Yolu (Dikey)"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        android:layout_marginBottom="4dp"/>
+
+    <EditText
+        android:id="@+id/etLocationPath"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="#404040"
+        android:hint="Örn: Etap 1/Blok A (Boş bırakılırsa tüm saha)"
+        android:textColorHint="#A0A0A0"
+        android:textColor="@color/white"
+        android:padding="12dp"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="İş/Kalem Yolu (Yatay)"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        android:layout_marginBottom="4dp"/>
+
+    <EditText
+        android:id="@+id/etJobPath"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="#404040"
+        android:hint="Örn: Mobilya/Vestiyer (Boş bırakılırsa tüm işler)"
+        android:textColorHint="#A0A0A0"
+        android:textColor="@color/white"
+        android:padding="12dp"
+        android:layout_marginBottom="16dp"/>
+
+    <CheckBox
+        android:id="@+id/cbCanDelegate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:buttonTint="@color/detayrenk"
+        android:text="Bu kişi kendi altındakilere de yetki verebilir (Delege edebilir)."
+        android:textColor="@color/white"
+        android:layout_marginBottom="24dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end">
+
+        <Button
+            android:id="@+id/btnCancelGrant"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@android:color/transparent"
+            android:textColor="@color/white"
+            android:text="İptal"
+            android:layout_marginEnd="8dp"/>
+
+        <Button
+            android:id="@+id/btnSubmitGrant"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#34C759"
+            android:textColor="@color/white"
+            android:text="Yetkilendir &amp; Onayla" />
+    </LinearLayout>
+
+</LinearLayout>

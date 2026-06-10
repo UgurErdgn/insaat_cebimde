@@ -1,0 +1,39 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:layout_marginBottom="8dp"
+    android:background="@drawable/incetextetrafi"
+    android:padding="4dp">
+
+    <ImageButton
+        android:id="@+id/deleteButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="0"
+        android:src="@android:drawable/ic_menu_delete"
+        app:tint="#FF0000"
+        android:background="?attr/selectableItemBackgroundBorderless"/>
+
+    <EditText
+        android:id="@+id/turAdi"
+        android:background="@drawable/incetextetrafi"
+        android:layout_width="0dp"
+        android:layout_height="45dp"
+        android:layout_weight="2"
+        android:layout_marginEnd="4dp"/>
+
+    <EditText
+        android:id="@+id/turAdedi"
+        android:background="@drawable/incetextetrafi"
+        android:layout_width="0dp"
+        android:layout_height="45dp"
+        android:layout_weight="2"/>
+    <EditText
+        android:background="@drawable/incetextetrafi"
+        android:layout_width="0dp"
+        android:layout_height="45dp"
+        android:layout_weight="1"/>
+</LinearLayout>

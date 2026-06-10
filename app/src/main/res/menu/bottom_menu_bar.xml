@@ -2,17 +2,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/teklifFragment"
-        android:icon="@drawable/ic_search"
-        android:visible="false"
-        android:title="Teklif Al/Ver" />
-    <item
-        android:id="@+id/firstFragment"
+        android:id="@+id/nav_home"
         android:icon="@drawable/ic_list"
-        android:visible="false"
-        android:title="Hizmetler" />
+        android:title="Ana Menü" />
     <item
-        android:id="@+id/profilFragment"
+        android:id="@+id/nav_profile"
         android:icon="@drawable/ic_profil"
         android:title="Profil" />
 </menu>

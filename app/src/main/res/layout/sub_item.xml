@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:cardBackgroundColor="#585C5F"
+    app:cardCornerRadius="16dp"
+    app:cardUseCompatPadding="true">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+
+        <LinearLayout
+            android:id="@+id/linearLayout3"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/layoutPercentPicker">
+
+            <com.google.android.material.tabs.TabLayout
+                android:id="@+id/tabLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
+                android:visibility="gone"
+                app:tabIndicatorColor="#FF3030"
+                app:tabSelectedTextColor="#FF3030"
+                app:tabTextColor="#A0A0A0" />
+
+            <androidx.viewpager2.widget.ViewPager2
+                android:id="@+id/viewPager"
+                android:layout_width="match_parent"
+                android:layout_height="250dp"
+                android:visibility="gone" />
+        </LinearLayout>
+
+
+        <TextView
+            android:id="@+id/textView21"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="80dp"
+            android:text="60%"
+            android:textColor="#A0A0A0"
+            android:textSize="12sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView20" />
+
+        <ProgressBar
+            android:id="@+id/linearProgress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="0dp"
+            android:layout_height="6.dp"
+            android:layout_marginEnd="8dp"
+            android:max="100"
+            android:progress="60"
+            android:progressDrawable="@drawable/horizontal_progress_bar"
+            app:layout_constraintBottom_toBottomOf="@+id/textView21"
+            app:layout_constraintEnd_toStartOf="@+id/textView21"
+            app:layout_constraintStart_toStartOf="@+id/textView20"
+            app:layout_constraintTop_toTopOf="@+id/textView21" />
+
+        <TextView
+            android:id="@+id/textView20"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Kalem Tamamlanma Yüzdesi"
+            android:textColor="#A0A0A0"
+            android:textSize="12sp"
+            app:layout_constraintStart_toStartOf="@+id/iconCategory"
+            app:layout_constraintTop_toBottomOf="@+id/tvSubTitle" />
+
+        <TextView
+            android:id="@+id/tvSubTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="Mobilya İşleri"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toEndOf="@+id/iconCategory"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <LinearLayout
+            android:id="@+id/layoutPercentPicker"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="8dp"
+            android:gravity="center"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/linearProgress">
+
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/toggleGroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:selectionRequired="true"
+                app:singleSelection="true">
+
+                <com.google.android.material.button.MaterialButton
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:text="0"
+                    android:textSize="16sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:text="25"
+                    android:textSize="16sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:text="50"
+                    android:textSize="16sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:text="75"
+                    android:textSize="16sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:text="100"
+                    android:textSize="16sp" />
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+        </LinearLayout>
+
+
+        <ImageView
+            android:id="@+id/iconCategory"
+            android:layout_width="24.dp"
+            android:layout_height="24.dp"
+            android:layout_marginStart="24dp"
+            android:src="@drawable/ic_search"
+            app:layout_constraintBottom_toBottomOf="@+id/tvSubTitle"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/tvSubTitle"
+            app:tint="#A0A0A0" />
+
+        <ImageView
+            android:id="@+id/iconCategory2"
+            android:layout_width="24.dp"
+            android:layout_height="24.dp"
+            android:layout_marginEnd="16dp"
+            android:src="@drawable/ic_rightarrow"
+            app:layout_constraintBottom_toTopOf="@+id/textView21"
+            app:layout_constraintEnd_toStartOf="@+id/btnEditSubItem"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="1.0"
+            app:tint="#A0A0A0" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnEditSubItem"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:minWidth="48dp"
+            android:padding="0dp"
+            android:visibility="visible"
+            app:icon="@drawable/ic_edit"
+            app:iconPadding="0dp"
+            app:iconSize="24dp"
+            app:iconTint="#E91E63"
+            app:layout_constraintBottom_toTopOf="@+id/textView21"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- 🔥 INLINE DÜZENLEME PANELİ (YENİ) -->
+        <LinearLayout
+            android:id="@+id/layoutEditor"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="12dp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/iconCategory2"
+            tools:visibility="visible">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginBottom="12dp"
+                android:background="#444444" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="Kategori"
+                    app:boxStrokeColor="#E91E63"
+                    app:hintTextColor="#E91E63">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etEditorCategory"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="#FFFFFF" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:hint="Tür"
+                    app:boxStrokeColor="#E91E63"
+                    app:hintTextColor="#E91E63">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etEditorType"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="#FFFFFF" />
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Çizimler / Resimler"
+                android:textColor="#A0A0A0"
+                android:textSize="12sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnEditorUploadImage"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="RESİM EKLE"
+                android:textColor="#E91E63"
+                app:icon="@drawable/ic_photo"
+                app:iconTint="#E91E63"
+                app:strokeColor="#E91E63" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvEditorImages"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:text="Malzemeler"
+                    android:textColor="#A0A0A0"
+                    android:textSize="12sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnEditorAddMaterial"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:text="YENİ SATIR"
+                    android:textColor="#E91E63"
+                    app:icon="@android:drawable/ic_input_add"
+                    app:iconTint="#E91E63" />
+            </RelativeLayout>
+
+            <LinearLayout
+                android:id="@+id/editorMaterialContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnEditorSave"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="24dp"
+                android:backgroundTint="#E91E63"
+                android:text="BU ŞABLONU GÜNCELLE"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                app:cornerRadius="12dp" />
+
+        </LinearLayout>
+
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>
+
+
+

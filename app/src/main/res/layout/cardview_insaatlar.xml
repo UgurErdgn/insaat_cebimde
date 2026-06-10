@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/myCardview"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="20dp"
+    android:layout_marginTop="10dp"
+
+    app:cardCornerRadius="30dp"
+    app:cardElevation="10dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/cardviewforbackground"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="8dp">
+
+
+        <TextView
+            android:id="@+id/rcyinsaatadi"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="2dp"
+            android:layout_marginTop="4dp"
+            android:text="İnşaat Adı"
+            android:textColor="#042842"
+            android:textSize="25sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/imageView4" />
+
+        <ImageView
+            android:id="@+id/imageView4"
+            android:layout_width="0dp"
+            android:layout_height="200dp"
+            android:background="@drawable/incetextetrafi"
+            android:clipToOutline="true"
+            android:scaleType="centerCrop"
+            android:src="@drawable/pic_2"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/rcyinsaatadi">
+
+
+            <LinearLayout
+                android:id="@+id/layoutOne"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                >
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:src="@drawable/bed" />
+
+                <TextView
+                    android:id="@+id/button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="25dp"
+                    android:layout_weight="1"
+                    android:background="@color/transparent"
+                    android:gravity="center"
+                    android:text="İşler"
+                    android:textAlignment="textStart"
+                    android:textSize="12sp"
+                    tools:ignore="RtlCompat" />
+            </LinearLayout>
+
+
+            <LinearLayout
+                android:id="@+id/layoutTwo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                >
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:src="@drawable/garage"
+                    tools:ignore="NestedWeights" />
+
+                <TextView
+                    android:id="@+id/button4"
+                    android:layout_width="wrap_content"
+                    android:layout_height="25dp"
+                    android:layout_weight="1"
+                    android:background="@color/transparent"
+                    android:gravity="center"
+                    android:text="KuşBakışı"
+                    android:textAlignment="viewStart"
+                    android:textSize="12sp"
+                    tools:ignore="RtlCompat"
+                    />
+            </LinearLayout>
+
+
+            <LinearLayout
+                android:id="@+id/layoutThree"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                >
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:src="@drawable/bath" />
+
+                <TextView
+                    android:id="@+id/button3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="25dp"
+                    android:layout_weight="1"
+                    android:background="@color/transparent"
+                    android:gravity="center"
+                    android:text="Genel Özellikler"
+                    android:textAlignment="textStart"
+                    android:textSize="12sp"
+                    tools:ignore="RtlCompat" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/layoutFour"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                >
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:src="@drawable/size" />
+
+                <TextView
+                    android:id="@+id/button5"
+                    android:layout_width="wrap_content"
+                    android:layout_height="25dp"
+                    android:layout_weight="1"
+                    android:background="@color/transparent"
+                    android:gravity="center"
+                    android:text="1800m'2"
+                    android:textAlignment="textStart"
+                    android:textSize="12sp"
+                    tools:ignore="RtlCompat" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+</androidx.cardview.widget.CardView>
