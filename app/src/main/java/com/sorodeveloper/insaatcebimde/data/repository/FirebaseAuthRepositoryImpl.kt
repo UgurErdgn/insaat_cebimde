@@ -2,7 +2,7 @@ package com.sorodeveloper.insaatcebimde.data.repository
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.sorodeveloper.insaatcebimde.domain.model.MatrixPermission
+import com.sorodeveloper.insaatcebimde.domain.model.ProjectRole
 import com.sorodeveloper.insaatcebimde.domain.model.User
 import com.sorodeveloper.insaatcebimde.domain.repository.AuthRepository
 import kotlinx.coroutines.flow.Flow
@@ -19,7 +19,14 @@ class FirebaseAuthRepositoryImpl @Inject constructor(
         val firebaseUser = auth.currentUser
         return if (firebaseUser != null) {
             try {
-                val documentSnapshot = db.collection("users").document(firebaseUser.uid).get().await()
+                var documentSnapshot = try {
+                    db.collection("users").document(firebaseUser.uid).get(com.google.firebase.firestore.Source.CACHE).await()
+                } catch (e: Exception) { null }
+
+                if (documentSnapshot == null || !documentSnapshot.exists()) {
+                    documentSnapshot = db.collection("users").document(firebaseUser.uid).get(com.google.firebase.firestore.Source.SERVER).await()
+                }
+
                 val user = documentSnapshot.toObject(User::class.java)
                 if (user != null) {
                     Result.success(user)
@@ -85,7 +92,7 @@ class FirebaseAuthRepositoryImpl @Inject constructor(
         return Result.success(Unit)
     }
 
-    override fun getUserPermissionsFlow(): Flow<Map<String, List<MatrixPermission>>> = flow {
+    override fun getUserPermissionsFlow(): Flow<Map<String, ProjectRole>> = flow {
         // TODO: Realtime database'den anlık yetki güncellemelerini dinle
     }
 }

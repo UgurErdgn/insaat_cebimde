@@ -35,3 +35,9 @@ Bu dosya, projenin en kritik mimari kurallarını, veritabanı ayarlarını ve g
 
 ## 7. UI Güvenliği & Suistimal Koruması (Abuse Protection)
 - **Tıklama Suistimali (Spam Clicks):** Tüm kritik işlemlerde (kayıt, veri ekleme, çıkış yapma, ilerleme güncelleme) mutlaka `isSaving` veya `isLoading` mantığı ile butonlara basılması **engellenmeli (debounce/disable)**. Bir kullanıcının butona saniyede 10 kere basıp Firestore'a 10 gereksiz yazma isteği yollamasına ASLA müsaade edilemez. Performans, Firestore faturası ve sistem güvenliği hep ilk planda tutulur.
+
+## 8. Veri Modeli ve Tür (Type) Güvenliği (Silent Failure Koruması)
+- **Hata Yutma (Swallowing Exceptions) Yasaktır:** Firestore'dan veri çekerken `.toObject()` kullanıldığında, veritabanındaki JSON yapısı ile Kotlin data class yapısı (Örn: `Map<String, Obje>` vs `Map<String, Liste>`) en ufak bir uyumsuzluk gösterirse Firestore exception fırlatır. `try-catch` bloklarında bu exception'lar ASLA sessizce geçiştirilip varsayılan (boş) objeler dönülmemelidir. AI, yeni bir özellik geliştirirken data class'ların Firestore'daki gerçek JSON karşılığını kesin olarak teyit etmeli, uyuşmazlık kaynaklı "Kelebek Etkisi" hatalarını önceden öngörmelidir.
+
+## 9. Sıfır Fatura Prensibi & Gereksiz Okuma Koruması (Read Optimization)
+- **Duplicate Firestore Read (Çifte Okuma) Yasaktır:** Bir veri (örneğin kullanıcı bilgisi) uygulama açılışında zaten çekildiyse, Profil veya başka bir sekmeye girildiğinde ASLA tekrar varsayılan `.get()` ile (sunucudan) okunamaz. Tüm tekrarlı okumalar istisnasız olarak **önce `.get(Source.CACHE)`** ile yerel bellekten denenmeli, sadece boş dönerse `Source.SERVER` kullanılmalıdır. Bu kural, Offline-First mimarisinin ve Firestore fatura optimizasyonunun bel kemiğidir. Her yeni yazılan Repository fonksiyonunda AI bu bağlamı (veri daha önce önbelleğe alındı mı?) düşünmek zorundadır.

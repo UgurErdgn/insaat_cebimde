@@ -1,5 +1,6 @@
 package com.sorodeveloper.insaatcebimde.domain.repository
 
+import com.sorodeveloper.insaatcebimde.domain.model.ProjectRole
 import com.sorodeveloper.insaatcebimde.domain.model.User
 import kotlinx.coroutines.flow.Flow
 
@@ -10,5 +11,5 @@ interface AuthRepository {
     suspend fun logout(): Result<Unit>
     
     // Matrix Yetkilendirme indeksini Flow olarak dinlemek için
-    fun getUserPermissionsFlow(): Flow<Map<String, List<com.sorodeveloper.insaatcebimde.domain.model.MatrixPermission>>>
+    fun getUserPermissionsFlow(): Flow<Map<String, ProjectRole>>
 }

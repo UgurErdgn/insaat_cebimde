@@ -5,5 +5,5 @@ data class User(
     val name: String = "",
     val email: String = "",
     val publicInviteId: String = "",
-    val projectPermissions: Map<String, List<MatrixPermission>> = emptyMap()
+    val projectPermissions: Map<String, ProjectRole> = emptyMap()
 )
