@@ -32,3 +32,9 @@ Bu dosya, projenin en kritik mimari kurallarını, veritabanı ayarlarını ve g
 ## 6. GitHub & İş Akışı (Workflow) Kuralları
 - **Otomatik Süreç Yönetimi:** Yapılacak her task, eklenecek her özellik veya çözülecek her hata (bug) için geliştirme sürecine başlarken **istisnasız olarak** `.gemini/skills/github-workflow.md` dosyasındaki kurallar uygulanmalıdır.
 - AI asistan (Antigravity), Uğur'dan yeni bir talep geldiğinde otomatik olarak bu skill dosyasını okumalı; işe başlamadan önce GitHub Issue oluşturmalı, feature branch açmalı ve commit standartlarına (feat:, fix:, vb.) harfiyen uymalıdır. Bu kural sayesinde Uğur'un her seferinde workflow hatırlatmasına gerek kalmaz.
+
+## 7. Proaktif AI Davranışı & Veri Akışı Doğrulaması (Data Flow Tracing)
+- **Kör İtimat Yasaktır:** AI, mevcut repoda (repository katmanında) hazır bulduğu bir fonksiyona (örn. `getCurrentUser()`) körü körüne güvenip UI'a veri bağlayamaz. Eğer UI'da `publicInviteId`, `permissions` gibi ek özellikler gösterilecekse, AI **zorunlu olarak** Repository katmanından başlayıp Firestore veritabanına kadar inerek o verinin GERÇEKTEN çekilip çekilmediğini (Auth tablosu mu yoksa Users koleksiyonu mu olduğunu) doğrulamalıdır. Uğur'un ekran görüntüsü atıp "bu neden gelmiyor" demesine gerek bırakmadan, proaktif şekilde eksikleri bulup tamamlamalıdır.
+
+## 8. UI Güvenliği & Suistimal Koruması (Abuse Protection)
+- **Tıklama Suistimali (Spam Clicks):** Tüm kritik işlemlerde (kayıt, veri ekleme, çıkış yapma, ilerleme güncelleme) mutlaka `isSaving` veya `isLoading` mantığı ile butonlara basılması **engellenmeli (debounce/disable)**. Bir kullanıcının butona saniyede 10 kere basıp Firestore'a 10 gereksiz yazma isteği yollamasına ASLA müsaade edilemez. Performans, Firestore faturası ve sistem güvenliği hep ilk planda tutulur.
