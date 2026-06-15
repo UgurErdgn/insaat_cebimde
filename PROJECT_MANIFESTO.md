@@ -28,3 +28,7 @@ Bu dosya, projenin en kritik mimari kurallarını, veritabanı ayarlarını ve g
 
 ## 5. Emülatör Kullanımı (Genymotion)
 - Performans için Genymotion kullanılıyorsa, Firebase servislerinin (Auth, Push vb.) çalışabilmesi için cihaza mutlaka **"Open GApps" (Google Play Servisleri)** kurulmalıdır. Google servisleri eksikse sistem test edilemez.
+
+## 6. GitHub & İş Akışı (Workflow) Kuralları
+- **Otomatik Süreç Yönetimi:** Yapılacak her task, eklenecek her özellik veya çözülecek her hata (bug) için geliştirme sürecine başlarken **istisnasız olarak** `.gemini/skills/github-workflow.md` dosyasındaki kurallar uygulanmalıdır.
+- AI asistan (Antigravity), Uğur'dan yeni bir talep geldiğinde otomatik olarak bu skill dosyasını okumalı; işe başlamadan önce GitHub Issue oluşturmalı, feature branch açmalı ve commit standartlarına (feat:, fix:, vb.) harfiyen uymalıdır. Bu kural sayesinde Uğur'un her seferinde workflow hatırlatmasına gerek kalmaz.
