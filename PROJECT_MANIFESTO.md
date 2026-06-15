@@ -26,15 +26,12 @@ Bu dosya, projenin en kritik mimari kurallarını, veritabanı ayarlarını ve g
 - **Kelebek Etkisi (Butterfly Effect Debugging):** Bir hata olduğunda, sığ bir şekilde sadece hata veren koda bakmam. Her zaman büyük resim ve silsile (Bölgesel DNS hataları, Firebase asenkron mimarisi vb.) hesaba katılır ve kök neden (root-cause) analiziyle Uğur'a rapor edilir.
 - **İletişim ve Anlatım Dili:** Uğur derin kod terminolojisine girmeyi sevmez. HER mesajın sonunda mutlaka yapılan değişikliğin özetini çıkaran bir yapı kullanılmalıdır: Neyi değiştirdik? Neden değiştirdik? Neleri etkiledi? Yapılan her teknik değişiklik, *gerçek hayattan (şantiyeden)* 1, 2 veya duruma göre 3 farklı senaryo örneği ile detaylandırılmalıdır. **Ayrıca verilen bu örneklerde; eski ve yeni durum arasındaki MALİYET (Read/Write belgesi sayısı), PERFORMANS (Hız/İnternet kullanımı) ve GÜVENLİK (Kötüye kullanım riski) farkları kesinlikle rakamsal veya somut değerlerle (Örn: "Eskiden 1000 okuma yapıyordu, şimdi 1 okuma yapıyor") kıyaslanmalıdır.** Bu kural istisnasız HER cevapta uygulanacaktır.
 
-## 5. Emülatör Kullanımı (Genymotion)
-- Performans için Genymotion kullanılıyorsa, Firebase servislerinin (Auth, Push vb.) çalışabilmesi için cihaza mutlaka **"Open GApps" (Google Play Servisleri)** kurulmalıdır. Google servisleri eksikse sistem test edilemez.
-
-## 6. GitHub & İş Akışı (Workflow) Kuralları
+## 5. GitHub & İş Akışı (Workflow) Kuralları
 - **Otomatik Süreç Yönetimi:** Yapılacak her task, eklenecek her özellik veya çözülecek her hata (bug) için geliştirme sürecine başlarken **istisnasız olarak** `.gemini/skills/github-workflow.md` dosyasındaki kurallar uygulanmalıdır.
 - AI asistan (Antigravity), Uğur'dan yeni bir talep geldiğinde otomatik olarak bu skill dosyasını okumalı; işe başlamadan önce GitHub Issue oluşturmalı, feature branch açmalı ve commit standartlarına (feat:, fix:, vb.) harfiyen uymalıdır. Bu kural sayesinde Uğur'un her seferinde workflow hatırlatmasına gerek kalmaz.
 
-## 7. Proaktif AI Davranışı & Veri Akışı Doğrulaması (Data Flow Tracing)
+## 6. Proaktif AI Davranışı & Veri Akışı Doğrulaması (Data Flow Tracing)
 - **Kör İtimat Yasaktır:** AI, mevcut repoda (repository katmanında) hazır bulduğu bir fonksiyona (örn. `getCurrentUser()`) körü körüne güvenip UI'a veri bağlayamaz. Eğer UI'da `publicInviteId`, `permissions` gibi ek özellikler gösterilecekse, AI **zorunlu olarak** Repository katmanından başlayıp Firestore veritabanına kadar inerek o verinin GERÇEKTEN çekilip çekilmediğini (Auth tablosu mu yoksa Users koleksiyonu mu olduğunu) doğrulamalıdır. Uğur'un ekran görüntüsü atıp "bu neden gelmiyor" demesine gerek bırakmadan, proaktif şekilde eksikleri bulup tamamlamalıdır.
 
-## 8. UI Güvenliği & Suistimal Koruması (Abuse Protection)
+## 7. UI Güvenliği & Suistimal Koruması (Abuse Protection)
 - **Tıklama Suistimali (Spam Clicks):** Tüm kritik işlemlerde (kayıt, veri ekleme, çıkış yapma, ilerleme güncelleme) mutlaka `isSaving` veya `isLoading` mantığı ile butonlara basılması **engellenmeli (debounce/disable)**. Bir kullanıcının butona saniyede 10 kere basıp Firestore'a 10 gereksiz yazma isteği yollamasına ASLA müsaade edilemez. Performans, Firestore faturası ve sistem güvenliği hep ilk planda tutulur.

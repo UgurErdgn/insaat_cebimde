@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.channels.awaitClose
 import com.google.firebase.functions.FirebaseFunctions
+import kotlinx.coroutines.launch
 
 class ProjectRepositoryImpl @Inject constructor(
     private val firestore: FirebaseFirestore,

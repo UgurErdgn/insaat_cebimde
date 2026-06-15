@@ -940,10 +940,11 @@ fun NodeChildrenContent(
                     }
                 }
                 item { Spacer(modifier = Modifier.height(80.dp)) } // FAB için boşluk
-        }
-    }
-}
-}
+            }
+            } // closes else
+        } // closes Box
+    } // closes Column
+} // closes NodeChildrenContent
 
 @Composable
 fun AddNodeForm(
