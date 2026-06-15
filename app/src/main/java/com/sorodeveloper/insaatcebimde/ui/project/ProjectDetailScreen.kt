@@ -940,14 +940,6 @@ fun NodeChildrenContent(
                     }
                 }
                 item { Spacer(modifier = Modifier.height(80.dp)) } // FAB için boşluk
-            }
-            
-            FloatingActionButton(
-                onClick = onAddClick,
-                modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)
-            ) {
-                Icon(Icons.Filled.Add, contentDescription = "Alt Birim Ekle")
-            }
         }
     }
 }
