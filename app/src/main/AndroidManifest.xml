@@ -28,7 +28,7 @@
             android:exported="false"
             android:theme="@style/Theme.InsaatCebimde" />
         <activity
-            android:name=".appActivity"
+            android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -57,6 +57,7 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.firebase.firestore)
     implementation(libs.googleid)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.fragment.ktx)
@@ -64,7 +65,7 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.recyclerview)
-    implementation(libs.firebase.database)
+    implementation(libs.firebase.firestore)
     implementation(libs.firebase.storage)
     implementation(libs.firebase.auth)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
@@ -78,12 +79,18 @@ dependencies {
 
     implementation(platform("com.google.firebase:firebase-bom:34.8.0"))
     implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-functions")
+    implementation("androidx.navigation:navigation-compose:2.7.7")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
 
     implementation("com.caverock:androidsvg:1.4")
     implementation("com.github.bumptech.glide:glide:4.16.0")
     implementation("com.github.baseflow:PhotoView:2.3.0")
+    implementation("io.coil-kt:coil-compose:2.6.0")
     
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
+    kapt("org.jetbrains.kotlin:kotlin-metadata-jvm:2.2.0")
 
 }
