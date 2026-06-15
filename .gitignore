@@ -1,15 +1,46 @@
+# ============================================
+# InsaatCebimde - Android Project .gitignore
+# ============================================
+
+# --- Gradle ---
+.gradle/
+build/
+app/build/
+!gradle-wrapper.jar
+
+# --- Android Studio / IntelliJ IDEA ---
+.idea/
 *.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+*.iws
+*.ipr
+captures/
+.externalNativeBuild/
+.cxx/
+
+# --- Local Config (Her geliştiriciye özel) ---
 local.properties
+
+# --- Firebase (API anahtarları - güvenlik için) ---
+app/google-services.json
+
+# --- Kotlin ---
+.kotlin/
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+
+# --- Build Outputs ---
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# --- Proguard ---
+app/proguard-rules.pro
+
+# --- AI Agent Dosyaları ---
+.agents/
+
+# --- Legacy Yedekler (repo'da gereksiz) ---
+legacy_backup/
