@@ -21,7 +21,7 @@ import com.sorodeveloper.insaatcebimde.ui.project.CreateProjectScreen
 import com.sorodeveloper.insaatcebimde.ui.project.ProjectDetailScreen
 
 @Composable
-fun MainScreen() {
+fun MainScreen(onLogoutSuccess: () -> Unit) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -78,7 +78,7 @@ fun MainScreen() {
                     }
                 ) 
             }
-            composable("profile") { ProfileScreen() }
+            composable("profile") { ProfileScreen(onLogoutSuccess = onLogoutSuccess) }
             composable("create_project") {
                 CreateProjectScreen(
                     onNavigateBack = { navController.popBackStack() },

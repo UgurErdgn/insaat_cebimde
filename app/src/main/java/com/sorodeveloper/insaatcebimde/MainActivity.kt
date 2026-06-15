@@ -60,7 +60,13 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable("main") {
-                            MainScreen()
+                            MainScreen(
+                                onLogoutSuccess = {
+                                    navController.navigate("login") {
+                                        popUpTo("main") { inclusive = true }
+                                    }
+                                }
+                            )
                         }
                     }
                 }
