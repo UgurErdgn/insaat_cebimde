@@ -69,7 +69,11 @@ class ProjectRepositoryImpl @Inject constructor(
 
     override suspend fun getProjectById(projectId: String): Result<Project> {
         return try {
-            val projectSnapshot = firestore.collection("projects").document(projectId).get().await()
+            val docRef = firestore.collection("projects").document(projectId)
+            var projectSnapshot = try { docRef.get(com.google.firebase.firestore.Source.CACHE).await() } catch(e: Exception) { null }
+            if (projectSnapshot == null || !projectSnapshot.exists()) {
+                projectSnapshot = docRef.get(com.google.firebase.firestore.Source.SERVER).await()
+            }
             val project = projectSnapshot.toObject(Project::class.java)
             if (project != null) {
                 Result.success(project)
@@ -228,7 +232,10 @@ class ProjectRepositoryImpl @Inject constructor(
                 firestore.collection("projects").document(projectId)
                     .collection("nodes").whereEqualTo("parentId", parentId)
             }
-            val snapshot = query.get().await()
+            var snapshot = try { query.get(com.google.firebase.firestore.Source.CACHE).await() } catch(e: Exception) { null }
+            if (snapshot == null || snapshot.isEmpty) {
+                snapshot = query.get(com.google.firebase.firestore.Source.SERVER).await()
+            }
             val nodes = snapshot.documents.mapNotNull { doc -> 
                 val node = doc.toObject(ProjectNode::class.java)
                 val isDeleted = doc.getBoolean("isDeleted") ?: false
@@ -328,9 +335,11 @@ class ProjectRepositoryImpl @Inject constructor(
 
     override suspend fun getJobTemplates(projectId: String): Result<List<JobTemplate>> {
         return try {
-            val snapshot = firestore.collection("projects").document(projectId)
-                .collection("jobTemplates")
-                .get().await()
+            val query = firestore.collection("projects").document(projectId).collection("jobTemplates")
+            var snapshot = try { query.get(com.google.firebase.firestore.Source.CACHE).await() } catch(e: Exception) { null }
+            if (snapshot == null || snapshot.isEmpty) {
+                snapshot = query.get(com.google.firebase.firestore.Source.SERVER).await()
+            }
                 
             val templates = snapshot.documents.mapNotNull { it.toObject(JobTemplate::class.java) }
             Result.success(templates.sortedByDescending { it.createdAt })
@@ -389,9 +398,11 @@ class ProjectRepositoryImpl @Inject constructor(
 
     override suspend fun getPropertyTemplates(projectId: String): Result<List<PropertyTemplate>> {
         return try {
-            val snapshot = firestore.collection("projects").document(projectId)
-                .collection("propertyTemplates")
-                .get().await()
+            val query = firestore.collection("projects").document(projectId).collection("propertyTemplates")
+            var snapshot = try { query.get(com.google.firebase.firestore.Source.CACHE).await() } catch(e: Exception) { null }
+            if (snapshot == null || snapshot.isEmpty) {
+                snapshot = query.get(com.google.firebase.firestore.Source.SERVER).await()
+            }
             val templates = snapshot.documents.mapNotNull { doc -> 
                 val template = doc.toObject(PropertyTemplate::class.java)
                 val isDeleted = doc.getBoolean("isDeleted") ?: false
@@ -407,10 +418,13 @@ class ProjectRepositoryImpl @Inject constructor(
 
     override suspend fun getNodeJobs(projectId: String, nodeId: String): Result<List<NodeJob>> {
         return try {
-            val snapshot = firestore.collection("projects").document(projectId)
+            val query = firestore.collection("projects").document(projectId)
                 .collection("nodes").document(nodeId)
                 .collection("jobs")
-                .get().await()
+            var snapshot = try { query.get(com.google.firebase.firestore.Source.CACHE).await() } catch(e: Exception) { null }
+            if (snapshot == null || snapshot.isEmpty) {
+                snapshot = query.get(com.google.firebase.firestore.Source.SERVER).await()
+            }
             val jobs = snapshot.documents.mapNotNull { 
                 val job = it.toObject(NodeJob::class.java)
                 if (job?.isDeleted == true) null else job
