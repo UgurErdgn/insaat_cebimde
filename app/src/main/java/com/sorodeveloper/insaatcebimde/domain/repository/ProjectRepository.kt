@@ -17,8 +17,11 @@ interface ProjectRepository {
     // Projeyi güncelle
     suspend fun updateProject(project: Project): Result<Unit>
     
-    // Kullanıcının yetkili olduğu sahaları getir
+    // Kullanıcının yetkili olduğu sahaları getir (Tek seferlik okuma)
     suspend fun getUserProjects(): Result<List<Project>>
+    
+    // Kullanıcının yetkili olduğu sahaları dinle (Flow - Offline First)
+    fun observeUserProjects(): Flow<List<Project>>
     
     // Hiyerarşi (Düğümler) İşlemleri
     suspend fun createProjectNode(node: ProjectNode): Result<Unit>

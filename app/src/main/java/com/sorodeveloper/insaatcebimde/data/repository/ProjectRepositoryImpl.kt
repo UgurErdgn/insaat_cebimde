@@ -94,24 +94,100 @@ class ProjectRepositoryImpl @Inject constructor(
         return try {
             val currentUser = auth.currentUser ?: throw Exception("Kullanıcı girişi bulunamadı!")
             
-            // Kullanıcının profil belgesini al
-            val userSnapshot = firestore.collection("users").document(currentUser.uid).get().await()
-            val permissions = userSnapshot.get("projectPermissions") as? Map<String, Any> ?: emptyMap()
+            // Kullanıcının profil belgesini CACHE'den almayı dene, yoksa SERVER'dan al
+            var userSnapshot = try {
+                firestore.collection("users").document(currentUser.uid).get(com.google.firebase.firestore.Source.CACHE).await()
+            } catch (e: Exception) { null }
             
+            if (userSnapshot == null || !userSnapshot.exists()) {
+                userSnapshot = firestore.collection("users").document(currentUser.uid).get(com.google.firebase.firestore.Source.SERVER).await()
+            }
+
+            val permissions = userSnapshot?.get("projectPermissions") as? Map<String, Any> ?: emptyMap()
             val projectIds = permissions.keys.toList()
+            
             if (projectIds.isEmpty()) return Result.success(emptyList())
 
-            // Proje detaylarını paralel şekilde çek
-            // Firestore 'in' sorgusu en fazla 10 eleman aldığı için mapNotNull ile tek tek çekmek daha güvenlidir.
-            val projects = projectIds.mapNotNull { projectId ->
-                val projectSnapshot = firestore.collection("projects").document(projectId).get().await()
-                projectSnapshot.toObject(Project::class.java)
+            // Projeleri 10'arlı gruplara böl (Firestore whereIn limiti 10'dur)
+            val allProjects = mutableListOf<Project>()
+            val chunks = projectIds.chunked(10)
+            
+            for (chunk in chunks) {
+                // Önce CACHE'den okumayı dene (Maliyet: 0)
+                var snapshot = try {
+                    firestore.collection("projects")
+                        .whereIn(com.google.firebase.firestore.FieldPath.documentId(), chunk)
+                        .get(com.google.firebase.firestore.Source.CACHE).await()
+                } catch(e: Exception) { null }
+                
+                // Cache'te eksik veri varsa sunucudan (SERVER) çek
+                if (snapshot == null || snapshot.size() < chunk.size) {
+                    snapshot = firestore.collection("projects")
+                        .whereIn(com.google.firebase.firestore.FieldPath.documentId(), chunk)
+                        .get(com.google.firebase.firestore.Source.SERVER).await()
+                }
+                
+                allProjects.addAll(snapshot.documents.mapNotNull { it.toObject(Project::class.java) })
             }
             
-            Result.success(projects.sortedByDescending { it.createdAt })
+            Result.success(allProjects.sortedByDescending { it.createdAt })
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    override fun observeUserProjects(): Flow<List<Project>> = callbackFlow {
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
+            close(Exception("Kullanıcı girişi bulunamadı!"))
+            return@callbackFlow
+        }
+
+        val userRef = firestore.collection("users").document(currentUser.uid)
+        
+        // Kullanıcı belgesini dinle (yetkiler değişirse anında haberdar ol)
+        val listener = userRef.addSnapshotListener { userSnapshot, error ->
+            if (error != null) {
+                close(error)
+                return@addSnapshotListener
+            }
+
+            val permissions = userSnapshot?.get("projectPermissions") as? Map<String, Any> ?: emptyMap()
+            val projectIds = permissions.keys.toList()
+
+            if (projectIds.isEmpty()) {
+                trySend(emptyList())
+                return@addSnapshotListener
+            }
+
+            // Flow içinde asenkron olarak projeleri çek
+            kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+                try {
+                    val allProjects = mutableListOf<Project>()
+                    val chunks = projectIds.chunked(10)
+                    
+                    for (chunk in chunks) {
+                        var snapshot = try {
+                            firestore.collection("projects")
+                                .whereIn(com.google.firebase.firestore.FieldPath.documentId(), chunk)
+                                .get(com.google.firebase.firestore.Source.CACHE).await()
+                        } catch(e: Exception) { null }
+                        
+                        if (snapshot == null || snapshot.size() < chunk.size) {
+                            snapshot = firestore.collection("projects")
+                                .whereIn(com.google.firebase.firestore.FieldPath.documentId(), chunk)
+                                .get(com.google.firebase.firestore.Source.SERVER).await()
+                        }
+                        
+                        allProjects.addAll(snapshot.documents.mapNotNull { it.toObject(Project::class.java) })
+                    }
+                    trySend(allProjects.sortedByDescending { it.createdAt })
+                } catch (e: Exception) {
+                    close(e)
+                }
+            }
+        }
+        awaitClose { listener.remove() }
     }
 
     // ---- Hiyerarşi (Düğümler) İşlemleri ----

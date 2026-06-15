@@ -27,19 +27,29 @@ class DashboardViewModel @Inject constructor(
     val isLoading: State<Boolean> = _isLoading
 
     init {
-        loadProjects()
+        observeProjects()
+    }
+
+    private fun observeProjects() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                projectRepository.observeUserProjects().collect { projectList ->
+                    _allProjects.value = projectList
+                    filterProjects(_searchQuery.value)
+                    _isLoading.value = false
+                }
+            } catch (e: Exception) {
+                // Hata durumu loglanabilir
+                _isLoading.value = false
+            }
+        }
     }
 
     fun loadProjects() {
-        viewModelScope.launch {
-            _isLoading.value = true
-            val result = projectRepository.getUserProjects()
-            result.onSuccess { 
-                _allProjects.value = it
-                filterProjects(_searchQuery.value)
-            }
-            _isLoading.value = false
-        }
+        // DashboardScreen her açıldığında çağrılıyor.
+        // Artık Flow ile dinlediğimiz için burada tekrar sunucuya gitmeye gerek yok.
+        // Veri zaten anlık güncelleniyor.
     }
 
     fun onSearchQueryChanged(query: String) {
