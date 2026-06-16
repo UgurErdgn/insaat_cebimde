@@ -57,9 +57,9 @@ data class MemberInfo(
 data class MemberScopes(
     // Eğer true ise, kullanıcının erişimi kısıtlıdır ve SADECE nodeCategories içindeki kurallar geçerlidir.
     // Eğer false ise, projedeki tüm düğüm ve kategorilere erişebilir (kısıtlama yoktur).
-    @get:PropertyName("restricted")
-    @set:PropertyName("restricted")
-    var isRestricted: Boolean = false,
+    @get:PropertyName("isRestricted")
+    @set:PropertyName("isRestricted")
+    var restricted: Boolean = false,
     
     // Key: Node ID, Value: O Node'da izin verilen kategorilerin listesi.
     // Eğer Value (Liste) BOŞ ise, o Node içindeki TÜM kategorilere erişebilir.
@@ -67,43 +67,8 @@ data class MemberScopes(
     // Örnek 2: {"A_Blok": []} -> A Blok'taki her şeye tam erişim
     var nodeCategories: Map<String, List<String>> = emptyMap()
 ) {
-    fun hasCategoryRestriction(nodeId: String, ancestors: List<String>): Boolean {
-        if (!isRestricted) return false
-        
-        // Önce kendi Node'unda bir kısıtlama var mı ona bakalım
-        val categories = nodeCategories[nodeId]
-        if (categories != null) {
-            return categories.isNotEmpty() // Eğer liste doluysa kısıtlama var demektir
-        }
-        
-        // Kendi Node'unda yoksa atalarından (Ancestors) gelen bir kısıtlama var mı?
-        // En yakından (en son eklenen ata) en uzağa doğru kontrol etmek mantıklı olabilir
-        for (ancestorId in ancestors.reversed()) {
-            val ancestorCategories = nodeCategories[ancestorId]
-            if (ancestorCategories != null) {
-                return ancestorCategories.isNotEmpty()
-            }
-        }
-        
-        return false // Eğer kendisine veya atasına hiçbir yetki atanmamışsa zaten göremeyecek, o yüzden kısıtlama durumu belirsiz (varsayılan false)
-    }
-
-    fun getAllowedCategories(nodeId: String, ancestors: List<String>): List<String> {
-        if (!isRestricted) return emptyList()
-        
-        val categories = nodeCategories[nodeId]
-        if (categories != null) return categories
-        
-        for (ancestorId in ancestors.reversed()) {
-            val ancestorCategories = nodeCategories[ancestorId]
-            if (ancestorCategories != null) return ancestorCategories
-        }
-        
-        return emptyList()
-    }
-
     fun isNodeSelectable(nodeId: String, ancestors: List<String>): Boolean {
-        if (!isRestricted) return true
+        if (!restricted) return true
         if (nodeCategories.containsKey(nodeId)) return true
         for (ancestorId in ancestors) {
             if (nodeCategories.containsKey(ancestorId)) return true
@@ -112,7 +77,7 @@ data class MemberScopes(
     }
 
     fun isNodeVisible(nodeId: String, ancestors: List<String>, allNodes: List<ProjectNode>): Boolean {
-        if (!isRestricted) return true
+        if (!restricted) return true
         if (isNodeSelectable(nodeId, ancestors)) return true
         
         // Atası olduğu child'lar kullanıcıya açıksa visible yap
@@ -123,12 +88,24 @@ data class MemberScopes(
     }
 
     fun hasAccessToJob(jobCategory: String, nodeId: String, ancestors: List<String>): Boolean {
-        if (!isRestricted) return true
+        if (!restricted) return true
         if (!isNodeSelectable(nodeId, ancestors)) return false
         
-        val allowedCats = getAllowedCategories(nodeId, ancestors)
-        if (allowedCats.isEmpty()) return true // Kısıtlama listesi boşsa tüm kategorilere erişebilir
+        // 1. Önce Node'un kendi üzerindeki kuralı kontrol et
+        if (nodeCategories.containsKey(nodeId)) {
+            val cats = nodeCategories[nodeId]!!
+            if (cats.isEmpty() || cats.contains(jobCategory)) return true
+        }
         
-        return allowedCats.contains(jobCategory)
+        // 2. Kendi üzerinde yoksa veya o kuralda bu iş yoksa, atalarından (üst mülklerden) miras alınan yetkilere bak
+        // Atalarından herhangi birisi "Tüm İşler" (boş liste) veya bu spesifik iş için yetki verdiyse erişim sağlar.
+        for (ancestorId in ancestors) {
+            if (nodeCategories.containsKey(ancestorId)) {
+                val cats = nodeCategories[ancestorId]!!
+                if (cats.isEmpty() || cats.contains(jobCategory)) return true
+            }
+        }
+        
+        return false
     }
 }

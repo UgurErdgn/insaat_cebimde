@@ -40,7 +40,7 @@ fun EditMemberDialog(
     onDismiss: () -> Unit,
     onSave: (MemberScopes, Set<Permission>, String) -> Unit
 ) {
-    var isRestricted by remember { mutableStateOf(member.scopes.isRestricted) }
+    var isRestricted by remember { mutableStateOf(member.scopes.restricted) }
     var nodeCategories by remember { mutableStateOf(member.scopes.nodeCategories) }
     var selectedPermissions by remember { mutableStateOf(Permission.fromKeys(member.permissions).toSet()) }
     var selectedRoleName by remember { mutableStateOf(member.roleName) }
@@ -193,19 +193,19 @@ fun EditMemberDialog(
                             ) {
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        text = if (isRestricted) "Kısıtlı Erişim" else "Tüm Projeye Tam Erişim",
+                                        text = "Kısıtlı Erişim",
                                         fontWeight = FontWeight.Bold,
-                                        color = if (isRestricted) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.primary
+                                        color = if (isRestricted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                                     )
                                     Text(
-                                        text = if (isRestricted) "Sadece aşağıda belirtilen mülkleri ve işleri görebilir." else "Projedeki tüm mülkleri ve işleri görebilir.",
+                                        text = if (isRestricted) "Sadece aşağıda belirtilen mülkleri ve işleri görebilir." else "Kısıtlama yok. Projedeki tüm mülkleri ve işleri görebilir (Tam Erişim).",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                                 Switch(
-                                    checked = !isRestricted,
-                                    onCheckedChange = { tamErisim -> isRestricted = !tamErisim }
+                                    checked = isRestricted,
+                                    onCheckedChange = { kısıtlı -> isRestricted = kısıtlı }
                                 )
                             }
                         }
@@ -343,7 +343,7 @@ fun EditMemberDialog(
                         Button(
                             onClick = {
                                 onSave(
-                                    MemberScopes(isRestricted = isRestricted, nodeCategories = nodeCategories),
+                                    MemberScopes(restricted = isRestricted, nodeCategories = nodeCategories),
                                     selectedPermissions,
                                     selectedRoleName
                                 )

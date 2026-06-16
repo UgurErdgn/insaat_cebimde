@@ -644,7 +644,7 @@ class ProjectRepositoryImpl @Inject constructor(
                 "targetUserId" to targetUserId,
                 "newPermissions" to newPermissions,
                 "newScopes" to hashMapOf(
-                    "isRestricted" to newScopes.isRestricted,
+                    "isRestricted" to newScopes.restricted,
                     "nodeCategories" to newScopes.nodeCategories
                 ),
                 "newRoleName" to newRoleName

@@ -201,7 +201,7 @@ fun SendInvitationDialog(
                     onSend(
                         inviteeId.trim(),
                         Permission.toKeys(selectedPermissions),
-                        MemberScopes(isRestricted = isRestricted, nodeCategories = nodeCategories),
+                        MemberScopes(restricted = isRestricted, nodeCategories = nodeCategories),
                         selectedRoleName
                     )
                 },

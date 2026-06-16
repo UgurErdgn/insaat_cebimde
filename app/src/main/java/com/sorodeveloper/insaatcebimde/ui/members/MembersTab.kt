@@ -328,7 +328,7 @@ private fun MemberCard(
                 )
                 Spacer(Modifier.width(4.dp))
                 Text(
-                    text = if (member.scopes.isRestricted) {
+                    text = if (member.scopes.restricted) {
                         "${member.scopes.nodeCategories.size} mülk/iş kısıtlaması"
                     } else {
                         "Projeye Tam Erişim"
