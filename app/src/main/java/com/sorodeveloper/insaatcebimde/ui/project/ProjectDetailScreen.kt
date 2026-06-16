@@ -36,6 +36,12 @@ import com.sorodeveloper.insaatcebimde.domain.model.JobMaterial
 import com.sorodeveloper.insaatcebimde.domain.model.JobTemplate
 import com.sorodeveloper.insaatcebimde.domain.model.PropertyTemplate
 import com.sorodeveloper.insaatcebimde.domain.model.ProjectNode
+import com.sorodeveloper.insaatcebimde.domain.model.MemberInfo
+import com.sorodeveloper.insaatcebimde.domain.model.Permission
+import com.sorodeveloper.insaatcebimde.ui.members.MembersTab
+import com.sorodeveloper.insaatcebimde.ui.members.MembersViewModel
+import com.sorodeveloper.insaatcebimde.ui.invitation.InvitationViewModel
+import com.sorodeveloper.insaatcebimde.ui.invitation.SendInvitationDialog
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -75,6 +81,7 @@ import com.bumptech.glide.Glide
 import com.github.chrisbanes.photoview.PhotoView
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
+import com.google.firebase.auth.FirebaseAuth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -86,9 +93,22 @@ fun ProjectDetailScreen(
     val project by viewModel.project
     val isLoading by viewModel.isLoading
 
-    // 0: İlerleme, 1: Şablonlar
+    // 0: İlerleme, 1: Şablonlar, 2: Ekip
     var selectedTabIndex by remember { mutableIntStateOf(0) }
-    val tabs = listOf("İlerleme", "Şablonlar")
+    val tabs = listOf("İlerleme", "Şablonlar", "Ekip")
+
+    // Üye yönetimi için
+    val membersViewModel: MembersViewModel = hiltViewModel()
+    val membersUiState by membersViewModel.uiState.collectAsState()
+    val invitationViewModel: InvitationViewModel = hiltViewModel()
+    val invitationUiState by invitationViewModel.uiState.collectAsState()
+    var showInviteDialog by remember { mutableStateOf(false) }
+    val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+
+    // Ekip üyelerini dinlemeye başla
+    LaunchedEffect(projectId) {
+        membersViewModel.observeMembers(projectId, currentUserId)
+    }
 
     Scaffold(
         topBar = {
@@ -196,7 +216,41 @@ fun ProjectDetailScreen(
                         nodeTypes = project?.nodeTypes ?: listOf("Blok", "Kat", "Daire"),
                         onAddNodeType = { viewModel.addNodeType(it) }
                     )
+                    2 -> MembersTab(
+                        members = membersUiState.members,
+                        currentUserMember = membersUiState.currentUserMember,
+                        isSaving = membersUiState.isSaving,
+                        onInviteClick = { showInviteDialog = true },
+                        onEditMember = { /* TODO: Yetki düzenleme dialogu */ },
+                        onRemoveMember = { member ->
+                            membersViewModel.removeMember(member.uid)
+                        }
+                    )
                 }
+            }
+
+            // Davet gönderme dialogu
+            if (showInviteDialog && membersUiState.currentUserMember != null) {
+                SendInvitationDialog(
+                    currentUserMember = membersUiState.currentUserMember!!,
+                    projectId = projectId,
+                    projectName = project?.name ?: "",
+                    availableNodes = emptyList(), // TODO: Node listesini çek
+                    availableCategories = emptyList(), // TODO: Kategori listesini çek
+                    isSaving = invitationUiState.isSaving,
+                    onDismiss = { showInviteDialog = false },
+                    onSend = { inviteeId, permissions, scopes, roleName ->
+                        invitationViewModel.sendInvitation(
+                            projectId = projectId,
+                            projectName = project?.name ?: "",
+                            inviteeInviteId = inviteeId,
+                            permissions = permissions,
+                            scopes = scopes,
+                            roleName = roleName
+                        )
+                        showInviteDialog = false
+                    }
+                )
             }
         }
     }

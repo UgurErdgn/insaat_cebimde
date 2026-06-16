@@ -57,6 +57,7 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
+    implementation("androidx.compose.material:material-icons-extended")
     implementation(libs.firebase.firestore)
     implementation(libs.googleid)
     implementation(libs.androidx.appcompat)
