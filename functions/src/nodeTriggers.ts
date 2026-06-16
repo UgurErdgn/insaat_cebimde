@@ -77,7 +77,7 @@ export const toggleNodeDelete = onCall(async (request) => {
       totalDescendantProgress += (jobData.progress || 0);
       const jId = jobData.jobTemplateId || jobDoc.id;
       if (!jobStats[jId]) {
-        jobStats[jId] = { totalCount: 0, totalProgress: 0 };
+        jobStats[jId] = { totalCount: 0, totalProgress: 0, name: jobData.name || "", category: jobData.category || "" };
       }
       jobStats[jId].totalCount += 1;
       jobStats[jId].totalProgress += (jobData.progress || 0);
@@ -103,6 +103,12 @@ export const toggleNodeDelete = onCall(async (request) => {
         }
         if (stats.totalProgress > 0) {
           updates[`jobStats.${jId}.totalProgress`] = FieldValue.increment(stats.totalProgress * multiplier);
+        }
+        // Geri getirme (restore) sırasında name/category bilgisini de yaz.
+        // Silme sırasında zaten bu alanlar duruyor, sadece count/progress düşüyor.
+        if (multiplier > 0 && stats.name) {
+          updates[`jobStats.${jId}.name`] = stats.name;
+          updates[`jobStats.${jId}.category`] = stats.category;
         }
       }
 

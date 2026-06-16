@@ -1096,6 +1096,32 @@ fun NodeJobsContent(
     }
 }
 
+/**
+ * Yetki bazlı filtrelenmiş ilerleme hesabı.
+ * @param node Hesaplanacak mülk düğümü.
+ * @param allowedCats null ise tüm kategoriler dahil, Set ise sadece o kategoriler dahil.
+ * @return Pair(totalProgress, totalCount) — count 0 ise iş yok demektir.
+ */
+private fun calculateFilteredProgress(
+    node: ProjectNode,
+    allowedCats: Set<String>?
+): Pair<Int, Int> {
+    return if (allowedCats == null) {
+        // Sınırsız yetkili, tüm jobStats'ı topla
+        Pair(node.totalDescendantProgress, node.totalDescendantJobs)
+    } else {
+        var prog = 0
+        var count = 0
+        node.jobStats.values.forEach { stat ->
+            if (allowedCats.contains(stat.category)) {
+                prog += stat.totalProgress
+                count += stat.totalCount
+            }
+        }
+        Pair(prog, count)
+    }
+}
+
 @Composable
 fun NodeChildrenContent(
     currentNode: ProjectNode?,
@@ -1112,22 +1138,7 @@ fun NodeChildrenContent(
             // MACRO VIEW (Genel İlerleme): Kullanıcı bu mülke tam/kategori bazlı yetkiliyse göster.
             // Sadece alt mülklerine yetkiliyse (emptySet) gizle!
             if (allowedCats != emptySet<String>()) {
-                var dynamicGenProg = 0
-                var dynamicGenCount = 0
-                
-                if (allowedCats == null) {
-                    // Sınırsız yetkili, tüm jobStats'ı topla (veya direkt totalDescendantProgress kullan)
-                    dynamicGenProg = currentNode.totalDescendantProgress
-                    dynamicGenCount = currentNode.totalDescendantJobs
-                } else {
-                    // Sadece izinli kategorilerin jobStats'ını topla
-                    currentNode.jobStats.values.forEach { stat ->
-                        if (allowedCats.contains(stat.category)) {
-                            dynamicGenProg += stat.totalProgress
-                            dynamicGenCount += stat.totalCount
-                        }
-                    }
-                }
+                val (dynamicGenProg, dynamicGenCount) = calculateFilteredProgress(currentNode, allowedCats)
                 
                 if (dynamicGenCount > 0) {
                     val generalProgress = dynamicGenProg / dynamicGenCount
@@ -1179,31 +1190,17 @@ fun NodeChildrenContent(
                                     
                                     if (childAllowedCats != emptySet<String>()) {
                                         if (child.totalDescendantJobs > 0) {
-                                            var dynamicChildProg = 0
-                                            var dynamicChildCount = 0
+                                            val (dynProg, dynCount) = calculateFilteredProgress(child, childAllowedCats)
                                             
-                                            if (childAllowedCats == null) {
-                                                dynamicChildProg = child.totalDescendantProgress
-                                                dynamicChildCount = child.totalDescendantJobs
-                                            } else {
-                                                child.jobStats.values.forEach { stat ->
-                                                    if (childAllowedCats.contains(stat.category)) {
-                                                        dynamicChildProg += stat.totalProgress
-                                                        dynamicChildCount += stat.totalCount
-                                                    }
-                                                }
-                                            }
-                                            
-                                            if (dynamicChildCount > 0) {
-                                                val genProg = dynamicChildProg / dynamicChildCount
+                                            if (dynCount > 0) {
+                                                val genProg = dynProg / dynCount
                                                 Text("Makro: %$genProg", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                                             } else {
                                                 Text("İş Yok", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
                                             }
                                         } else {
                                             // Alt mülk yoksa (yaprak düğümse), sadece kendi yerel ilerlemesi vardır.
-                                            // Yerel işler jobStats'ta tutulmadığı için genel "localProgress" gösteriyoruz.
-                                            Text("Yerel: %${child.localProgress}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                                            Text("Yerel: %${child.localProgress}", style = MaterialTheme.typography.bodySmall, color = Color(0xFF4CAF50), fontWeight = FontWeight.Bold)
                                         }
                                     } else {
                                         Text("Kısmi Yetki (İçeri Girin)", style = MaterialTheme.typography.bodySmall, color = Color.Gray, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
