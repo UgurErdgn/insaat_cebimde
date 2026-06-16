@@ -235,9 +235,15 @@ fun ProgressTabContent(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     LaunchedEffect(projectId) {
-        nodeViewModel.loadRootNode(projectId)
-        propertyTemplateViewModel.loadTemplates(projectId)
-        jobTemplateViewModel.loadTemplates(projectId)
+        if (currentPath.isEmpty()) {
+            nodeViewModel.loadRootNode(projectId)
+        }
+        if (propertyTemplates.isEmpty()) {
+            propertyTemplateViewModel.loadTemplates(projectId)
+        }
+        if (jobTemplates.isEmpty()) {
+            jobTemplateViewModel.loadTemplates(projectId)
+        }
     }
 
     val currentNode = currentPath.lastOrNull()
@@ -747,8 +753,8 @@ fun NodeJobsContent(
             val allJobs = nodeJobs.filter { !it.isDeleted }
             val groupedJobs = allJobs.groupBy { it.category }
 
-            var expandedCategories by remember { mutableStateOf(emptySet<String>()) }
-            var expandedJobs by remember { mutableStateOf(emptySet<String>()) }
+            var expandedCategory by remember { mutableStateOf<String?>(null) }
+            var expandedJobId by remember { mutableStateOf<String?>(null) }
 
             var showImageDialog by remember { mutableStateOf(false) }
             var selectedJobForDialog by remember { mutableStateOf<JobTemplate?>(null) }
@@ -800,7 +806,7 @@ fun NodeJobsContent(
                         val catAvg = if (jobs.isNotEmpty()) catTotalProgress / jobs.size else 0
 
                         item {
-                            val isCatExpanded = expandedCategories.contains(category)
+                            val isCatExpanded = expandedCategory == category
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -814,7 +820,7 @@ fun NodeJobsContent(
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .clickable {
-                                                expandedCategories = if (isCatExpanded) expandedCategories - category else expandedCategories + category
+                                                expandedCategory = if (isCatExpanded) null else category
                                             }
                                             .padding(16.dp),
                                         verticalAlignment = Alignment.CenterVertically
@@ -839,13 +845,13 @@ fun NodeJobsContent(
                                         HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f))
                                         Column(modifier = Modifier.padding(16.dp)) {
                                             jobs.forEachIndexed { index, job ->
-                                                val isJobExpanded = expandedJobs.contains(job.id)
+                                                val isJobExpanded = expandedJobId == job.id
                                                 Column(modifier = Modifier.fillMaxWidth()) {
                                                     Row(
                                                         modifier = Modifier
                                                             .fillMaxWidth()
                                                             .clickable {
-                                                                expandedJobs = if (isJobExpanded) expandedJobs - job.id else expandedJobs + job.id
+                                                                expandedJobId = if (isJobExpanded) null else job.id
                                                             }
                                                             .padding(vertical = 12.dp),
                                                         verticalAlignment = Alignment.CenterVertically
