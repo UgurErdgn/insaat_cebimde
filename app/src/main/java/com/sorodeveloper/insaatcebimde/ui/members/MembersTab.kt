@@ -318,29 +318,24 @@ private fun MemberCard(
             }
 
             // Kapsam bilgisi
-            if (member.scopes.hasNodeRestriction() || member.scopes.hasCategoryRestriction()) {
-                Spacer(Modifier.height(6.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Outlined.FilterAlt,
-                        contentDescription = null,
-                        modifier = Modifier.size(14.dp),
-                        tint = MaterialTheme.colorScheme.outline
-                    )
-                    Spacer(Modifier.width(4.dp))
-                    Text(
-                        text = buildString {
-                            if (member.scopes.hasNodeRestriction())
-                                append("${member.scopes.nodes.size} mülk")
-                            if (member.scopes.hasNodeRestriction() && member.scopes.hasCategoryRestriction())
-                                append(" • ")
-                            if (member.scopes.hasCategoryRestriction())
-                                append("${member.scopes.categories.size} kategori")
-                        },
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.outline
-                    )
-                }
+            Spacer(Modifier.height(6.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Outlined.FilterAlt,
+                    contentDescription = null,
+                    modifier = Modifier.size(14.dp),
+                    tint = MaterialTheme.colorScheme.outline
+                )
+                Spacer(Modifier.width(4.dp))
+                Text(
+                    text = if (member.scopes.isRestricted) {
+                        "${member.scopes.nodeCategories.size} mülk/iş kısıtlaması"
+                    } else {
+                        "Projeye Tam Erişim"
+                    },
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.outline
+                )
             }
         }
     }

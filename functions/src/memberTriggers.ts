@@ -80,11 +80,58 @@ export const updateMemberPermissions = onCall(async (request) => {
     }
   }
 
+  // Scope Subset Kontrolü
+  if (!requesterMember.isOwner) {
+    const requesterScopes = requesterMember.scopes || { isRestricted: false, nodeCategories: {} };
+    const reqScopes = newScopes || targetMember.scopes || { isRestricted: false, nodeCategories: {} };
+
+    if (requesterScopes.isRestricted) {
+      if (!reqScopes.isRestricted) {
+        throw new HttpsError("permission-denied", "Kısıtlı erişime sahip olduğunuz için tam yetkili kapsam veremezsiniz.");
+      }
+
+      const reqNodes = Object.keys(reqScopes.nodeCategories || {});
+      for (const nodeId of reqNodes) {
+        const reqCats: string[] = reqScopes.nodeCategories[nodeId] || [];
+        let allowedCats: string[] | null = null;
+
+        if (requesterScopes.nodeCategories && requesterScopes.nodeCategories[nodeId]) {
+          allowedCats = requesterScopes.nodeCategories[nodeId];
+        } else {
+          const nodeSnap = await db.collection("projects").doc(projectId).collection("nodes").doc(nodeId).get();
+          if (nodeSnap.exists) {
+            const ancestors: string[] = nodeSnap.data()?.ancestors || [];
+            for (const ancId of [...ancestors].reverse()) {
+              if (requesterScopes.nodeCategories && requesterScopes.nodeCategories[ancId]) {
+                allowedCats = requesterScopes.nodeCategories[ancId];
+                break;
+              }
+            }
+          }
+        }
+
+        if (allowedCats === null) {
+          throw new HttpsError("permission-denied", "Kapsam ihlali: Yetkiniz olmayan bir mülke erişim veremezsiniz.");
+        }
+
+        if (allowedCats.length > 0) {
+          if (reqCats.length === 0) {
+            throw new HttpsError("permission-denied", "Kapsam ihlali: Tüm işlere yetki veremezsiniz, yetkiniz kısıtlı.");
+          }
+          const invalidCats = reqCats.filter((c: string) => !allowedCats!.includes(c));
+          if (invalidCats.length > 0) {
+            throw new HttpsError("permission-denied", `Kapsam ihlali: Yetkiniz olmayan işler: ${invalidCats.join(", ")}`);
+          }
+        }
+      }
+    }
+  }
+
   // Güncellemeyi yap
   const updatedMember = {
     ...targetMember,
     permissions: newPermissions,
-    scopes: newScopes || targetMember.scopes || {nodes: [], categories: []},
+    scopes: newScopes || targetMember.scopes || {isRestricted: false, nodeCategories: {}},
     roleName: newRoleName || targetMember.roleName,
   };
 

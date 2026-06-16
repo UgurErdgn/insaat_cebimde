@@ -94,6 +94,82 @@ export const onInvitationCreated = onDocumentCreated({
       return;
     }
 
+    // 3.5. Scope (Kapsam) Subset Kontrolü
+    const inviterScopes = inviterMember.scopes || { isRestricted: false, nodeCategories: {} };
+    const requestedScopes = invitationData.grantedScopes || { isRestricted: false, nodeCategories: {} };
+
+    if (inviterScopes.isRestricted) {
+      // Eğer davet eden kısıtlıysa, KESİNLİKLE davet edilen de kısıtlı olmalıdır.
+      if (!requestedScopes.isRestricted) {
+        await snapshot.ref.update({
+          status: "CANCELLED",
+          statusMessage: "Kısıtlı erişime sahip olduğunuz için tam yetkili davet gönderemezsiniz.",
+          updatedAt: Date.now(),
+        });
+        return;
+      }
+
+      // requestedScopes.nodeCategories içindeki her bir düğüm ve kategori için alt küme kontrolü
+      const reqNodes = Object.keys(requestedScopes.nodeCategories || {});
+
+      for (const nodeId of reqNodes) {
+        const reqCats: string[] = requestedScopes.nodeCategories[nodeId] || [];
+        let allowedCats: string[] | null = null;
+
+        // 1. Kendi yetkilerinde bu düğüm var mı?
+        if (inviterScopes.nodeCategories && inviterScopes.nodeCategories[nodeId]) {
+          allowedCats = inviterScopes.nodeCategories[nodeId];
+        } else {
+          // 2. Yoksa, Firestore'dan düğümü okuyup atalarında yetkisi var mı diye bak
+          const nodeSnap = await db.collection("projects").doc(projectId).collection("nodes").doc(nodeId).get();
+          if (nodeSnap.exists) {
+            const ancestors: string[] = nodeSnap.data()?.ancestors || [];
+            // En sondan başa doğru ata yetkilerini kontrol et
+            for (const ancId of [...ancestors].reverse()) {
+              if (inviterScopes.nodeCategories && inviterScopes.nodeCategories[ancId]) {
+                allowedCats = inviterScopes.nodeCategories[ancId];
+                break;
+              }
+            }
+          }
+        }
+
+        // Eğer ne kendisinde ne atalarında yetki bulunamadıysa: HATA
+        if (allowedCats === null) {
+          await snapshot.ref.update({
+            status: "CANCELLED",
+            statusMessage: "Kapsam ihlali: Yetkiniz olmayan bir mülke erişim veremezsiniz.",
+            updatedAt: Date.now(),
+          });
+          logger.warn(`Scope ihlali: ${inviterId} yetkisiz düğüm eklemeye çalıştı: ${nodeId}`);
+          return;
+        }
+
+        // Kategori alt küme kontrolü
+        // allowedCats boş liste ise: "Tüm kategoriler" demek, sorun yok.
+        // Ama allowedCats doluysa (kısıtlıysa), reqCats KESİNLİKLE dolu ve alt küme olmalı.
+        if (allowedCats.length > 0) {
+          if (reqCats.length === 0) {
+            await snapshot.ref.update({
+              status: "CANCELLED",
+              statusMessage: "Kapsam ihlali: Tüm işlere yetki veremezsiniz, yetkiniz kısıtlı.",
+              updatedAt: Date.now(),
+            });
+            return;
+          }
+          const invalidCats = reqCats.filter((c) => !allowedCats!.includes(c));
+          if (invalidCats.length > 0) {
+            await snapshot.ref.update({
+              status: "CANCELLED",
+              statusMessage: `Kapsam ihlali: Yetkiniz olmayan işler: ${invalidCats.join(", ")}`,
+              updatedAt: Date.now(),
+            });
+            return;
+          }
+        }
+      }
+    }
+
     // 4. Her şey güvenli, davetiye PENDING olarak kalır
     logger.info(`Davet onaylandı: ${invitationId} (${inviterId} -> invitee)`);
   } catch (error) {
@@ -148,7 +224,7 @@ export const onInvitationUpdated = onDocumentUpdated({
         displayName: inviteeName || "",
         roleName: grantedRoleName || "Çalışan",
         permissions: grantedPermissions || [],
-        scopes: grantedScopes || {nodes: [], categories: []},
+        scopes: grantedScopes || {isRestricted: false, nodeCategories: {}},
         isOwner: false,
       };
 

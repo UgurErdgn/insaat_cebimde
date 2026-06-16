@@ -51,10 +51,48 @@ data class MemberInfo(
  * Boş liste = Tüm düğümler/kategoriler görülebilir (kısıtlama yok).
  */
 data class MemberScopes(
-    val nodes: List<String> = emptyList(),     // Boş = tüm düğümler
-    val categories: List<String> = emptyList() // Boş = tüm kategoriler
+    // Eğer true ise, kullanıcının erişimi kısıtlıdır ve SADECE nodeCategories içindeki kurallar geçerlidir.
+    // Eğer false ise, projedeki tüm düğüm ve kategorilere erişebilir (kısıtlama yoktur).
+    val isRestricted: Boolean = false,
+    
+    // Key: Node ID, Value: O Node'da izin verilen kategorilerin listesi.
+    // Eğer Value (Liste) BOŞ ise, o Node içindeki TÜM kategorilere erişebilir.
+    // Örnek 1: {"node_15": ["Elektrik"]} -> 15'te sadece Elektrik
+    // Örnek 2: {"A_Blok": []} -> A Blok'taki her şeye tam erişim
+    val nodeCategories: Map<String, List<String>> = emptyMap()
 ) {
-    /** Kapsam kısıtlaması var mı? */
-    fun hasNodeRestriction(): Boolean = nodes.isNotEmpty()
-    fun hasCategoryRestriction(): Boolean = categories.isNotEmpty()
+    fun hasCategoryRestriction(nodeId: String, ancestors: List<String>): Boolean {
+        if (!isRestricted) return false
+        
+        // Önce kendi Node'unda bir kısıtlama var mı ona bakalım
+        val categories = nodeCategories[nodeId]
+        if (categories != null) {
+            return categories.isNotEmpty() // Eğer liste doluysa kısıtlama var demektir
+        }
+        
+        // Kendi Node'unda yoksa atalarından (Ancestors) gelen bir kısıtlama var mı?
+        // En yakından (en son eklenen ata) en uzağa doğru kontrol etmek mantıklı olabilir
+        for (ancestorId in ancestors.reversed()) {
+            val ancestorCategories = nodeCategories[ancestorId]
+            if (ancestorCategories != null) {
+                return ancestorCategories.isNotEmpty()
+            }
+        }
+        
+        return false // Eğer kendisine veya atasına hiçbir yetki atanmamışsa zaten göremeyecek, o yüzden kısıtlama durumu belirsiz (varsayılan false)
+    }
+
+    fun getAllowedCategories(nodeId: String, ancestors: List<String>): List<String> {
+        if (!isRestricted) return emptyList()
+        
+        val categories = nodeCategories[nodeId]
+        if (categories != null) return categories
+        
+        for (ancestorId in ancestors.reversed()) {
+            val ancestorCategories = nodeCategories[ancestorId]
+            if (ancestorCategories != null) return ancestorCategories
+        }
+        
+        return emptyList()
+    }
 }

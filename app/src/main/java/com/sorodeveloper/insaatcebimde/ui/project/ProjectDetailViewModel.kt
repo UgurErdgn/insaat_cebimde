@@ -25,8 +25,8 @@ class ProjectDetailViewModel @Inject constructor(
     private val _isLoading = mutableStateOf(true)
     val isLoading: State<Boolean> = _isLoading
 
-    private val _availableNodes = mutableStateOf<List<Pair<String, String>>>(emptyList())
-    val availableNodes: State<List<Pair<String, String>>> = _availableNodes
+    private val _availableNodes = mutableStateOf<List<com.sorodeveloper.insaatcebimde.domain.model.ProjectNode>>(emptyList())
+    val availableNodes: State<List<com.sorodeveloper.insaatcebimde.domain.model.ProjectNode>> = _availableNodes
 
     private val _availableCategories = mutableStateOf<List<String>>(emptyList())
     val availableCategories: State<List<String>> = _availableCategories
@@ -46,7 +46,7 @@ class ProjectDetailViewModel @Inject constructor(
             // Scope seçenekleri için tüm düğümleri ve kategorileri getir
             val nodesResult = projectRepository.getAllProjectNodes(projectId)
             nodesResult.onSuccess { nodes ->
-                _availableNodes.value = nodes.map { Pair(it.id, it.name) }
+                _availableNodes.value = nodes
             }
             
             val categoriesResult = projectRepository.getAllJobCategories(projectId)
