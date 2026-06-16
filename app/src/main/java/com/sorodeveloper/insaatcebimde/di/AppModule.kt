@@ -3,8 +3,10 @@ package com.sorodeveloper.insaatcebimde.di
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.sorodeveloper.insaatcebimde.data.repository.FirebaseAuthRepositoryImpl
+import com.sorodeveloper.insaatcebimde.data.repository.FirebaseInvitationRepositoryImpl
 import com.sorodeveloper.insaatcebimde.data.repository.ProjectRepositoryImpl
 import com.sorodeveloper.insaatcebimde.domain.repository.AuthRepository
+import com.sorodeveloper.insaatcebimde.domain.repository.InvitationRepository
 import com.sorodeveloper.insaatcebimde.domain.repository.ProjectRepository
 import dagger.Binds
 import dagger.Module
@@ -50,4 +52,11 @@ abstract class RepositoryModule {
     abstract fun bindProjectRepository(
         impl: ProjectRepositoryImpl
     ): ProjectRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindInvitationRepository(
+        impl: FirebaseInvitationRepositoryImpl
+    ): InvitationRepository
 }
+

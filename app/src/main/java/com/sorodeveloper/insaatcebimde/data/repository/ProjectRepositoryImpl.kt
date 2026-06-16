@@ -2,9 +2,13 @@ package com.sorodeveloper.insaatcebimde.data.repository
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Source
 import com.google.firebase.storage.FirebaseStorage
 import com.sorodeveloper.insaatcebimde.domain.model.JobTemplate
+import com.sorodeveloper.insaatcebimde.domain.model.MemberInfo
+import com.sorodeveloper.insaatcebimde.domain.model.MemberScopes
 import com.sorodeveloper.insaatcebimde.domain.model.NodeJob
+import com.sorodeveloper.insaatcebimde.domain.model.Permission
 import com.sorodeveloper.insaatcebimde.domain.model.PropertyTemplate
 import com.sorodeveloper.insaatcebimde.domain.model.Project
 import com.sorodeveloper.insaatcebimde.domain.model.ProjectNode
@@ -30,9 +34,30 @@ class ProjectRepositoryImpl @Inject constructor(
             val currentUser = auth.currentUser ?: throw Exception("Kullanıcı girişi bulunamadı!")
             val projectRef = firestore.collection("projects").document()
             
+            // Kullanıcı adını cache'den çek (varsa)
+            val userSnapshot = try {
+                firestore.collection("users").document(currentUser.uid)
+                    .get(Source.CACHE).await()
+            } catch (e: Exception) {
+                firestore.collection("users").document(currentUser.uid)
+                    .get(Source.SERVER).await()
+            }
+            val userName = userSnapshot.getString("name") ?: ""
+
+            // Owner bilgisini members Map'ine göm
+            val ownerMember = MemberInfo(
+                uid = currentUser.uid,
+                displayName = userName,
+                roleName = "Proje Sahibi",
+                permissions = Permission.toKeys(Permission.OWNER_PRESET),
+                scopes = MemberScopes(), // Boş = tüm erişim
+                isOwner = true
+            )
+
             val newProject = project.copy(
                 id = projectRef.id,
-                ownerId = currentUser.uid
+                ownerId = currentUser.uid,
+                members = mapOf(currentUser.uid to ownerMember)
             )
 
             // Projeyi kaydet
@@ -52,7 +77,7 @@ class ProjectRepositoryImpl @Inject constructor(
             )
             sahaNodeRef.set(sahaNode).await()
 
-            // Oluşturan kullanıcıya bu projenin yetkilerini "OWNER" olarak ata
+            // Kullanıcının users dökümanındaki projectPermissions'ı da güncelle (eski uyumluluk)
             val userRef = firestore.collection("users").document(currentUser.uid)
             val permissionsUpdate = mapOf(
                 "projectPermissions.${projectRef.id}" to mapOf(
@@ -528,6 +553,84 @@ class ProjectRepositoryImpl @Inject constructor(
                 .collection("nodes").document(nodeId)
                 .collection("jobs").document(jobId)
                 .update("progress", progress).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // ---- Üye Yönetimi (Members) ----
+
+    override suspend fun getProjectMembers(projectId: String): Result<List<MemberInfo>> {
+        return try {
+            val result = getProjectById(projectId)
+            result.map { project ->
+                project.members.map { (uid, member) ->
+                    member.copy(uid = uid)
+                }
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override fun observeProjectMembers(projectId: String): Flow<List<MemberInfo>> = callbackFlow {
+        val docRef = firestore.collection("projects").document(projectId)
+
+        val listener = docRef.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                close(error)
+                return@addSnapshotListener
+            }
+            if (snapshot != null && snapshot.exists()) {
+                val project = snapshot.toObject(Project::class.java)
+                val members = project?.members?.map { (uid, member) ->
+                    member.copy(uid = uid)
+                } ?: emptyList()
+                trySend(members)
+            }
+        }
+        awaitClose { listener.remove() }
+    }
+
+    override suspend fun requestMemberUpdate(
+        projectId: String,
+        targetUserId: String,
+        newPermissions: List<String>,
+        newScopes: MemberScopes,
+        newRoleName: String
+    ): Result<Unit> {
+        return try {
+            val currentUser = auth.currentUser ?: throw Exception("Kullanıcı girişi bulunamadı!")
+            val functions = FirebaseFunctions.getInstance("europe-west3")
+            val data = hashMapOf(
+                "projectId" to projectId,
+                "requesterId" to currentUser.uid,
+                "targetUserId" to targetUserId,
+                "newPermissions" to newPermissions,
+                "newScopes" to hashMapOf(
+                    "nodes" to newScopes.nodes,
+                    "categories" to newScopes.categories
+                ),
+                "newRoleName" to newRoleName
+            )
+            functions.getHttpsCallable("updateMemberPermissions").call(data).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun removeMember(projectId: String, targetUserId: String): Result<Unit> {
+        return try {
+            val currentUser = auth.currentUser ?: throw Exception("Kullanıcı girişi bulunamadı!")
+            val functions = FirebaseFunctions.getInstance("europe-west3")
+            val data = hashMapOf(
+                "projectId" to projectId,
+                "requesterId" to currentUser.uid,
+                "targetUserId" to targetUserId
+            )
+            functions.getHttpsCallable("removeMember").call(data).await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

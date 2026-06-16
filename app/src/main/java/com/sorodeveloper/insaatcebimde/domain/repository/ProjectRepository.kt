@@ -7,6 +7,9 @@ import com.sorodeveloper.insaatcebimde.domain.model.JobTemplate
 import com.sorodeveloper.insaatcebimde.domain.model.NodeJob
 import com.sorodeveloper.insaatcebimde.domain.model.PropertyTemplate
 
+import com.sorodeveloper.insaatcebimde.domain.model.MemberInfo
+import com.sorodeveloper.insaatcebimde.domain.model.MemberScopes
+
 interface ProjectRepository {
     // Yeni saha oluştur
     suspend fun createProject(project: Project): Result<Unit>
@@ -47,4 +50,23 @@ interface ProjectRepository {
     suspend fun getNodeJobs(projectId: String, nodeId: String): Result<List<NodeJob>>
     fun observeNodeJobs(projectId: String, nodeId: String): Flow<List<NodeJob>>
     suspend fun updateNodeJobProgress(projectId: String, nodeId: String, jobId: String, progress: Int): Result<Unit>
+
+    // ---- Üye Yönetimi (Members) ----
+    /** Projenin üye listesini getir (Cache-First, proje dökümanından okunur — ekstra Read yok) */
+    suspend fun getProjectMembers(projectId: String): Result<List<MemberInfo>>
+
+    /** Projenin üye listesini canlı dinle (Snapshot Listener) */
+    fun observeProjectMembers(projectId: String): Flow<List<MemberInfo>>
+
+    /** Üyenin yetkilerini güncelleme isteği at (Cloud Function doğrulayacak) */
+    suspend fun requestMemberUpdate(
+        projectId: String,
+        targetUserId: String,
+        newPermissions: List<String>,
+        newScopes: MemberScopes,
+        newRoleName: String
+    ): Result<Unit>
+
+    /** Üyeyi projeden çıkar (Cloud Function subset kontrolü yapacak) */
+    suspend fun removeMember(projectId: String, targetUserId: String): Result<Unit>
 }
