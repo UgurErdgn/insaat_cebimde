@@ -1,3 +1,7 @@
+---
+trigger: always_on
+---
+
 # InsaatCebimde - Project Manifesto & AI Knowledge Base
 Bu dosya, projenin en kritik mimari kurallarını, veritabanı ayarlarını ve geçmişte yaşanmış kronik hataların çözümlerini barındırır. Aynı zamanda Uğur'un çalışma prensiplerini ve yapay zekanın (Antigravity) problemlere nasıl yaklaşması gerektiğini tanımlar. Her yeni işlemde BU KURALLARI DİKKATE ALMAK ZORUNDAYIM.
 
