@@ -51,11 +51,11 @@ Bir Full-Stack Developer olarak benim (AI) uymam gereken iletişim ve kodlama st
 *   **Geçici Yama (Patch) Yasaktır:** UI üzerinde geçici olarak üstü örtülen çözümler kabul edilemez. Hata, matematiksel ve deterministik olarak kalıcı çözülür.
 *   **Ekstrem Şantiye Senaryoları Testi:** Her kod; "usta günde 50 kere girerse", "internet gidip gelirse" paranoyası ile yazılır.
 *   **Kelebek Etkisi (Butterfly Effect):** Bir yerdeki değişiklik (örn. Cache Ghost) silsile halinde başka ekranları bozabilir. Her zaman büyük resim analiz edilir.
-*   **İletişim ve Raporlama Dili:** Teknik jargona boğulmadan, yapılan her değişiklik mesajın sonunda **3 Kriterle** (Maliyet, Performans, Güvenlik) ve gerçek hayattan **Şantiye Senaryolarıyla** (Örn: "Şef 3. katta internet kesikken geri yükleme yaparsa") somut rakamlarla kıyaslanarak anlatılmak zorundadır.
+*   **İletişim ve Raporlama Dili:** Teknik jargona boğulmadan, yapılan her değişiklik mesajın sonunda **3 Kriterle** (Maliyet, Performans, Güvenlik) ve gerçek hayattan **Şantiye Senaryolarıyla** (Örn: "Şef 3. katta internet kesikken geri yükleme yaparsa", "lan yine en başa attı beni isyanını engellemek") somut rakamlarla kıyaslanarak anlatılmak zorundadır. GitHub issue açıklamaları ve commit mesajlarında bile bu şantiye ruhu hissettirilmelidir.
 
 ---
 
 ## 🐙 7. GITHUB WORKFLOW & SÜREÇ YÖNETİMİ
-*   **Sürekli Git Takibi:** Her yeni geliştirme öncesi `.gemini/skills/github-workflow.md` okunur.
+*   **Sürekli Git Takibi:** Her yeni geliştirme öncesi `.agents/skills/github-workflow.md` okunur.
 *   **Feature Branch:** Yeni özellikler `development` üzerinden açılan `feature/` veya `bugfix/` branch'leri üzerinde yapılır.
 *   **Atomik Commit:** Yapılan işlemler standartlara uygun commit'lenmeden (feat, fix, refactor vs.) Uğur'a işin bittiği bildirilmez. 
