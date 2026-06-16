@@ -285,14 +285,37 @@ fun ProgressTabContent(
                         )
                     }
                 }
-                IconButton(onClick = { 
-                    nodeViewModel.loadDeletedNodes(projectId)
-                    showDeletedNodesSheet = true 
-                }) {
-                    Icon(Icons.Filled.Refresh, contentDescription = "Silinenleri Geri Getir", tint = MaterialTheme.colorScheme.error)
-                }
-                IconButton(onClick = { showBatchCreateSheet = true }, modifier = Modifier.padding(end = 8.dp)) {
-                    Icon(Icons.Filled.AddCircle, contentDescription = "Mülk Üretim Sihirbazı", tint = MaterialTheme.colorScheme.primary)
+                var showBreadcrumbMenu by remember { mutableStateOf(false) }
+                Box {
+                    IconButton(
+                        onClick = { showBreadcrumbMenu = true },
+                        modifier = Modifier.padding(end = 8.dp)
+                    ) {
+                        Icon(Icons.Filled.MoreVert, contentDescription = "İşlemler", tint = MaterialTheme.colorScheme.primary)
+                    }
+                    
+                    DropdownMenu(
+                        expanded = showBreadcrumbMenu,
+                        onDismissRequest = { showBreadcrumbMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Yeni Mülk Üret") },
+                            leadingIcon = { Icon(Icons.Filled.AddCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                            onClick = { 
+                                showBreadcrumbMenu = false
+                                showBatchCreateSheet = true 
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Silinenleri Geri Getir") },
+                            leadingIcon = { Icon(Icons.Filled.Refresh, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
+                            onClick = { 
+                                showBreadcrumbMenu = false
+                                nodeViewModel.loadDeletedNodes(projectId)
+                                showDeletedNodesSheet = true 
+                            }
+                        )
+                    }
                 }
             }
 
