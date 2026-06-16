@@ -24,6 +24,9 @@ class ProjectNodeViewModel @Inject constructor(
     private val _isLoading = mutableStateOf(false)
     val isLoading: State<Boolean> = _isLoading
 
+    private val _deletedNodes = mutableStateOf<List<com.sorodeveloper.insaatcebimde.domain.model.DeletedNodeDetail>>(emptyList())
+    val deletedNodes: State<List<com.sorodeveloper.insaatcebimde.domain.model.DeletedNodeDetail>> = _deletedNodes
+
     private var childNodesJob: kotlinx.coroutines.Job? = null
     private var currentNodeJob: kotlinx.coroutines.Job? = null
 
@@ -54,6 +57,16 @@ class ProjectNodeViewModel @Inject constructor(
                     observeCurrentNode(projectId, rootNode.id)
                     loadChildren(projectId, rootNode.id)
                 }
+            }
+            _isLoading.value = false
+        }
+    }
+
+    fun loadDeletedNodes(projectId: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            repository.getDeletedNodesWithDetails(projectId).onSuccess { details ->
+                _deletedNodes.value = details
             }
             _isLoading.value = false
         }

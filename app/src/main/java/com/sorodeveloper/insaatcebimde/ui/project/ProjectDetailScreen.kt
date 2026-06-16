@@ -62,6 +62,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.foundation.pager.HorizontalPager
@@ -203,6 +204,7 @@ fun ProgressTabContent(
     var showAddNodeSheet by remember { mutableStateOf(false) }
     var showTemplateSheet by remember { mutableStateOf(false) }
     var showBatchCreateSheet by remember { mutableStateOf(false) }
+    var showDeletedNodesSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     LaunchedEffect(projectId) {
@@ -254,6 +256,12 @@ fun ProgressTabContent(
                             }
                         )
                     }
+                }
+                IconButton(onClick = { 
+                    nodeViewModel.loadDeletedNodes(projectId)
+                    showDeletedNodesSheet = true 
+                }) {
+                    Icon(Icons.Filled.Refresh, contentDescription = "Silinenleri Geri Getir", tint = MaterialTheme.colorScheme.error)
                 }
                 IconButton(onClick = { showBatchCreateSheet = true }, modifier = Modifier.padding(end = 8.dp)) {
                     Icon(Icons.Filled.AddCircle, contentDescription = "Mülk Üretim Sihirbazı", tint = MaterialTheme.colorScheme.primary)
@@ -415,6 +423,16 @@ fun ProgressTabContent(
                         }
                     },
                     isSaving = isLoading
+                )
+            }
+        }
+
+        if (showDeletedNodesSheet) {
+            ModalBottomSheet(onDismissRequest = { showDeletedNodesSheet = false }, sheetState = sheetState) {
+                DeletedNodesSheet(
+                    projectId = projectId,
+                    nodeViewModel = nodeViewModel,
+                    onClose = { showDeletedNodesSheet = false }
                 )
             }
         }

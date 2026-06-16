@@ -119,20 +119,26 @@ class ProjectRepositoryImpl @Inject constructor(
             
             for (chunk in chunks) {
                 // Önce CACHE'den okumayı dene (Maliyet: 0)
-                var snapshot = try {
+                var cacheSnapshot = try {
                     firestore.collection("projects")
                         .whereIn(com.google.firebase.firestore.FieldPath.documentId(), chunk)
                         .get(com.google.firebase.firestore.Source.CACHE).await()
                 } catch(e: Exception) { null }
                 
                 // Cache'te eksik veri varsa sunucudan (SERVER) çek
-                if (snapshot == null || snapshot.size() < chunk.size) {
-                    snapshot = firestore.collection("projects")
-                        .whereIn(com.google.firebase.firestore.FieldPath.documentId(), chunk)
-                        .get(com.google.firebase.firestore.Source.SERVER).await()
+                val finalSnapshot = if (cacheSnapshot == null || cacheSnapshot.size() < chunk.size) {
+                    try {
+                        firestore.collection("projects")
+                            .whereIn(com.google.firebase.firestore.FieldPath.documentId(), chunk)
+                            .get(com.google.firebase.firestore.Source.SERVER).await()
+                    } catch (e: Exception) {
+                        cacheSnapshot
+                    }
+                } else {
+                    cacheSnapshot
                 }
                 
-                allProjects.addAll(snapshot.documents.mapNotNull { it.toObject(Project::class.java) })
+                finalSnapshot?.documents?.mapNotNull { it.toObject(Project::class.java) }?.let { allProjects.addAll(it) }
             }
             
             Result.success(allProjects.sortedByDescending { it.createdAt })
@@ -172,23 +178,32 @@ class ProjectRepositoryImpl @Inject constructor(
                     val chunks = projectIds.chunked(10)
                     
                     for (chunk in chunks) {
-                        var snapshot = try {
+                        var cacheSnapshot = try {
                             firestore.collection("projects")
                                 .whereIn(com.google.firebase.firestore.FieldPath.documentId(), chunk)
                                 .get(com.google.firebase.firestore.Source.CACHE).await()
                         } catch(e: Exception) { null }
                         
-                        if (snapshot == null || snapshot.size() < chunk.size) {
-                            snapshot = firestore.collection("projects")
-                                .whereIn(com.google.firebase.firestore.FieldPath.documentId(), chunk)
-                                .get(com.google.firebase.firestore.Source.SERVER).await()
+                        val finalSnapshot = if (cacheSnapshot == null || cacheSnapshot.size() < chunk.size) {
+                            try {
+                                firestore.collection("projects")
+                                    .whereIn(com.google.firebase.firestore.FieldPath.documentId(), chunk)
+                                    .get(com.google.firebase.firestore.Source.SERVER).await()
+                            } catch (e: Exception) {
+                                // Sunucuya erişilemiyorsa (offline), mecburen cache'deki eksik veriyi kullanacağız
+                                cacheSnapshot
+                            }
+                        } else {
+                            cacheSnapshot
                         }
                         
-                        allProjects.addAll(snapshot.documents.mapNotNull { it.toObject(Project::class.java) })
+                        finalSnapshot?.documents?.mapNotNull { it.toObject(Project::class.java) }?.let { allProjects.addAll(it) }
                     }
                     trySend(allProjects.sortedByDescending { it.createdAt })
                 } catch (e: Exception) {
-                    close(e)
+                    // Ciddi bir hata olursa Flow'u kapatma, sadece hata fırlatıldığında boş liste at
+                    // Çünkü close(e) yaparsak UI patlar ve geri dönülemez
+                    e.printStackTrace()
                 }
             }
         }
@@ -243,6 +258,48 @@ class ProjectRepositoryImpl @Inject constructor(
                 if (isDeleted) null else node
             }
             Result.success(nodes.sortedBy { it.createdAt })
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getDeletedNodesWithDetails(projectId: String): Result<List<com.sorodeveloper.insaatcebimde.domain.model.DeletedNodeDetail>> {
+        return try {
+            // Tüm düğümleri Cache'den al, yoksa Server'dan al
+            var snapshot = try {
+                firestore.collection("projects").document(projectId).collection("nodes")
+                    .get(com.google.firebase.firestore.Source.CACHE).await()
+            } catch (e: Exception) { null }
+
+            if (snapshot == null || snapshot.isEmpty) {
+                snapshot = firestore.collection("projects").document(projectId).collection("nodes")
+                    .get(com.google.firebase.firestore.Source.SERVER).await()
+            }
+
+            val allNodes = snapshot.documents.mapNotNull { it.toObject(ProjectNode::class.java) }
+            val nodeMap = allNodes.associateBy { it.id }
+
+            val deletedNodes = allNodes.filter { it.isDeleted }
+
+            val topLevelDeletedNodes = deletedNodes.filter { node ->
+                val parent = nodeMap[node.parentId]
+                parent == null || !parent.isDeleted
+            }
+
+            val details = topLevelDeletedNodes.map { topNode ->
+                val pathString = topNode.ancestors.mapNotNull { id -> nodeMap[id]?.name }.joinToString(" > ")
+                val descendantNames = deletedNodes
+                    .filter { it.ancestors.contains(topNode.id) && it.id != topNode.id }
+                    .map { it.name }
+
+                com.sorodeveloper.insaatcebimde.domain.model.DeletedNodeDetail(
+                    node = topNode,
+                    fullPath = pathString,
+                    deletedChildrenNames = descendantNames
+                )
+            }
+
+            Result.success(details.sortedByDescending { it.node.createdAt })
         } catch (e: Exception) {
             Result.failure(e)
         }

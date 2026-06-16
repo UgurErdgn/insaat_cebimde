@@ -27,6 +27,7 @@ interface ProjectRepository {
     suspend fun createProjectNode(node: ProjectNode): Result<Unit>
     suspend fun updateProjectNode(node: ProjectNode): Result<Unit>
     suspend fun getProjectNodes(projectId: String, parentId: String? = null): Result<List<ProjectNode>>
+    suspend fun getDeletedNodesWithDetails(projectId: String): Result<List<com.sorodeveloper.insaatcebimde.domain.model.DeletedNodeDetail>>
     fun observeProjectNodes(projectId: String, parentId: String? = null): kotlinx.coroutines.flow.Flow<List<ProjectNode>>
     fun observeProjectNode(projectId: String, nodeId: String): kotlinx.coroutines.flow.Flow<ProjectNode?>
     suspend fun toggleNodeDelete(projectId: String, nodeId: String, isDeleted: Boolean): Result<Unit>
