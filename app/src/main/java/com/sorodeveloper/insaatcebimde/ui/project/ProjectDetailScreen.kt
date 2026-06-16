@@ -217,6 +217,7 @@ fun ProjectDetailScreen(
                     1 -> TemplatesTabContent(
                         projectId = projectId,
                         nodeTypes = project?.nodeTypes ?: listOf("Blok", "Kat", "Daire"),
+                        currentUserMember = membersUiState.currentUserMember,
                         onAddNodeType = { viewModel.addNodeType(it) }
                     )
                     2 -> MembersTab(
@@ -379,36 +380,38 @@ fun ProgressTabContent(
                         )
                     }
                 }
-                var showBreadcrumbMenu by remember { mutableStateOf(false) }
-                Box {
-                    IconButton(
-                        onClick = { showBreadcrumbMenu = true },
-                        modifier = Modifier.padding(end = 8.dp)
-                    ) {
-                        Icon(Icons.Filled.MoreVert, contentDescription = "İşlemler", tint = MaterialTheme.colorScheme.primary)
-                    }
-                    
-                    DropdownMenu(
-                        expanded = showBreadcrumbMenu,
-                        onDismissRequest = { showBreadcrumbMenu = false }
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text("Yeni Mülk Üret") },
-                            leadingIcon = { Icon(Icons.Filled.AddCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-                            onClick = { 
-                                showBreadcrumbMenu = false
-                                showBatchCreateSheet = true 
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Silinenleri Geri Getir") },
-                            leadingIcon = { Icon(Icons.Filled.Refresh, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
-                            onClick = { 
-                                showBreadcrumbMenu = false
-                                nodeViewModel.loadDeletedNodes(projectId)
-                                showDeletedNodesSheet = true 
-                            }
-                        )
+                if (currentUserMember?.hasPermission(Permission.MANAGE_NODES) == true) {
+                    var showBreadcrumbMenu by remember { mutableStateOf(false) }
+                    Box {
+                        IconButton(
+                            onClick = { showBreadcrumbMenu = true },
+                            modifier = Modifier.padding(end = 8.dp)
+                        ) {
+                            Icon(Icons.Filled.MoreVert, contentDescription = "İşlemler", tint = MaterialTheme.colorScheme.primary)
+                        }
+                        
+                        DropdownMenu(
+                            expanded = showBreadcrumbMenu,
+                            onDismissRequest = { showBreadcrumbMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Yeni Mülk Üret") },
+                                leadingIcon = { Icon(Icons.Filled.AddCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                                onClick = { 
+                                    showBreadcrumbMenu = false
+                                    showBatchCreateSheet = true 
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Silinenleri Geri Getir") },
+                                leadingIcon = { Icon(Icons.Filled.Refresh, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
+                                onClick = { 
+                                    showBreadcrumbMenu = false
+                                    nodeViewModel.loadDeletedNodes(projectId)
+                                    showDeletedNodesSheet = true 
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -506,6 +509,7 @@ fun ProgressTabContent(
                             propertyTemplates = propertyTemplates,
                             jobTemplates = jobTemplates,
                             nodeJobs = visibleNodeJobs,
+                            currentUserMember = currentUserMember,
                             onAssignTemplateClick = { showTemplateSheet = true },
                             onUpdateJobProgress = { jobId, progress ->
                                 currentNode?.let {
@@ -855,6 +859,7 @@ fun NodeJobsContent(
     propertyTemplates: List<PropertyTemplate>,
     jobTemplates: List<JobTemplate>,
     nodeJobs: List<com.sorodeveloper.insaatcebimde.domain.model.NodeJob>,
+    currentUserMember: com.sorodeveloper.insaatcebimde.domain.model.MemberInfo?,
     onAssignTemplateClick: () -> Unit,
     onUpdateJobProgress: (String, Int) -> Unit
 ) {
@@ -863,8 +868,10 @@ fun NodeJobsContent(
             Spacer(modifier = Modifier.height(32.dp))
             Text("Bu mülk için atanmış bir şablon yok.", color = Color.Gray)
             Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = onAssignTemplateClick) {
-                Text("Mülk Şablonu Ata")
+            if (currentUserMember?.hasPermission(Permission.MANAGE_NODES) == true) {
+                Button(onClick = onAssignTemplateClick) {
+                    Text("Mülk Şablonu Ata")
+                }
             }
         }
     } else {
@@ -901,8 +908,10 @@ fun NodeJobsContent(
                             Text("Atanan Şablon:", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
                             Text(assignedTemplate.name, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
                         }
-                        TextButton(onClick = onAssignTemplateClick) {
-                            Text("Değiştir")
+                        if (currentUserMember?.hasPermission(Permission.MANAGE_NODES) == true) {
+                            TextButton(onClick = onAssignTemplateClick) {
+                                Text("Değiştir")
+                            }
                         }
                     }
                     HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
@@ -1005,28 +1014,30 @@ fun NodeJobsContent(
                                                     if (isJobExpanded) {
                                                         Column(modifier = Modifier.padding(start = 8.dp, bottom = 12.dp)) {
                                                             // 5 Button Progress Selector
-                                                            Text("İlerleme Durumu:", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
-                                                            Row(
-                                                                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                                                                horizontalArrangement = Arrangement.SpaceBetween
-                                                            ) {
-                                                                listOf(0, 25, 50, 75, 100).forEach { p ->
-                                                                    val isSelected = job.progress == p
-                                                                    Button(
-                                                                        onClick = { onUpdateJobProgress(job.id, p) },
-                                                                        colors = ButtonDefaults.buttonColors(
-                                                                            containerColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.LightGray,
-                                                                            contentColor = if (isSelected) Color.White else Color.DarkGray
-                                                                        ),
-                                                                        contentPadding = PaddingValues(0.dp),
-                                                                        modifier = Modifier.size(48.dp),
-                                                                        shape = RoundedCornerShape(8.dp)
-                                                                    ) {
-                                                                        Text("$p", fontWeight = FontWeight.Bold)
+                                                            if (currentUserMember?.hasPermission(Permission.UPDATE_PROGRESS) == true) {
+                                                                Text("İlerleme Durumu:", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+                                                                Row(
+                                                                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                                                                    horizontalArrangement = Arrangement.SpaceBetween
+                                                                ) {
+                                                                    listOf(0, 25, 50, 75, 100).forEach { p ->
+                                                                        val isSelected = job.progress == p
+                                                                        Button(
+                                                                            onClick = { onUpdateJobProgress(job.id, p) },
+                                                                            colors = ButtonDefaults.buttonColors(
+                                                                                containerColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.LightGray,
+                                                                                contentColor = if (isSelected) Color.White else Color.DarkGray
+                                                                            ),
+                                                                            contentPadding = PaddingValues(0.dp),
+                                                                            modifier = Modifier.size(48.dp),
+                                                                            shape = RoundedCornerShape(8.dp)
+                                                                        ) {
+                                                                            Text("$p", fontWeight = FontWeight.Bold)
+                                                                        }
                                                                     }
                                                                 }
                                                             }
-
+                                                            
                                                             // Materials & Images
                                                             val jTemplate = jobTemplates.find { it.id == job.jobTemplateId }
                                                             if (jTemplate != null) {
@@ -1164,11 +1175,13 @@ fun NodeChildrenContent(
             if (childNodes.isEmpty()) {
                 Column(modifier = Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("Henüz alt birim eklenmemiş.", color = Color.Gray)
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(onClick = onAddClick) {
-                        Icon(Icons.Filled.Add, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Alt Birim Ekle")
+                    if (currentUserMember?.hasPermission(Permission.MANAGE_NODES) == true) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(onClick = onAddClick) {
+                            Icon(Icons.Filled.Add, contentDescription = null)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Alt Birim Ekle")
+                        }
                     }
                 }
             } else {
@@ -1208,22 +1221,24 @@ fun NodeChildrenContent(
                                 }
                             }
                             
-                            var expanded by remember { mutableStateOf(false) }
-                            Box {
-                                IconButton(onClick = { expanded = true }) {
-                                    Icon(Icons.Filled.MoreVert, contentDescription = "Seçenekler", tint = Color.Gray)
-                                }
-                                androidx.compose.material3.DropdownMenu(
-                                    expanded = expanded,
-                                    onDismissRequest = { expanded = false }
-                                ) {
-                                    androidx.compose.material3.DropdownMenuItem(
-                                        text = { Text("Sil", color = Color.Red) },
-                                        onClick = {
-                                            expanded = false
-                                            onDeleteNode(child)
-                                        }
-                                    )
+                            if (currentUserMember?.hasPermission(Permission.MANAGE_NODES) == true) {
+                                var expanded by remember { mutableStateOf(false) }
+                                Box {
+                                    IconButton(onClick = { expanded = true }) {
+                                        Icon(Icons.Filled.MoreVert, contentDescription = "Seçenekler", tint = Color.Gray)
+                                    }
+                                    androidx.compose.material3.DropdownMenu(
+                                        expanded = expanded,
+                                        onDismissRequest = { expanded = false }
+                                    ) {
+                                        androidx.compose.material3.DropdownMenuItem(
+                                            text = { Text("Sil", color = Color.Red) },
+                                            onClick = {
+                                                expanded = false
+                                                onDeleteNode(child)
+                                            }
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -1310,6 +1325,7 @@ fun AssignTemplateForm(
 fun TemplatesTabContent(
     projectId: String,
     nodeTypes: List<String>,
+    currentUserMember: com.sorodeveloper.insaatcebimde.domain.model.MemberInfo?,
     onAddNodeType: (String) -> Unit
 ) {
     var subTabIndex by remember { mutableIntStateOf(0) }
@@ -1362,8 +1378,8 @@ fun TemplatesTabContent(
                 label = "Sub Tab Transition"
             ) { targetIndex ->
                 when (targetIndex) {
-                    0 -> JobTemplatesTabContent(projectId)
-                    1 -> PropertyTemplatesTabContent(projectId, nodeTypes, onAddNodeType)
+                    0 -> JobTemplatesTabContent(projectId, currentUserMember)
+                    1 -> PropertyTemplatesTabContent(projectId, nodeTypes, currentUserMember, onAddNodeType)
                 }
             }
         }
@@ -1374,6 +1390,7 @@ fun TemplatesTabContent(
 @Composable
 fun JobTemplatesTabContent(
     projectId: String,
+    currentUserMember: com.sorodeveloper.insaatcebimde.domain.model.MemberInfo?,
     viewModel: JobTemplateViewModel = hiltViewModel()
 ) {
     val templates by viewModel.templates
@@ -1399,14 +1416,16 @@ fun JobTemplatesTabContent(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(text = "Henüz bir şablon bulunmuyor.", color = Color.Gray)
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(onClick = { 
-                    editingTemplate = null
-                    showBottomSheet = true 
-                }) {
-                    Icon(Icons.Filled.Add, contentDescription = "Ekle")
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Şablon Oluştur")
+                if (currentUserMember?.hasPermission(Permission.CREATE_JOBS) == true) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(onClick = { 
+                        editingTemplate = null
+                        showBottomSheet = true 
+                    }) {
+                        Icon(Icons.Filled.Add, contentDescription = "Ekle")
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Şablon Oluştur")
+                    }
                 }
             }
         } else {
@@ -1423,6 +1442,7 @@ fun JobTemplatesTabContent(
                         ExpandableCategoryCard(
                             category = category, 
                             templates = categoryTemplates,
+                            canEdit = currentUserMember?.hasPermission(Permission.CREATE_JOBS) == true,
                             onEditClick = { template ->
                                 editingTemplate = template
                                 showBottomSheet = true
@@ -1432,14 +1452,16 @@ fun JobTemplatesTabContent(
                 }
             }
             
-            FloatingActionButton(
-                onClick = { 
-                    editingTemplate = null
-                    showBottomSheet = true 
-                },
-                modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)
-            ) {
-                Icon(Icons.Filled.Add, contentDescription = "Şablon Ekle")
+            if (currentUserMember?.hasPermission(Permission.CREATE_JOBS) == true) {
+                FloatingActionButton(
+                    onClick = { 
+                        editingTemplate = null
+                        showBottomSheet = true 
+                    },
+                    modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)
+                ) {
+                    Icon(Icons.Filled.Add, contentDescription = "Şablon Ekle")
+                }
             }
         }
 
@@ -1479,6 +1501,7 @@ fun JobTemplatesTabContent(
 fun ExpandableCategoryCard(
     category: String, 
     templates: List<JobTemplate>,
+    canEdit: Boolean,
     onEditClick: (JobTemplate) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -1510,7 +1533,7 @@ fun ExpandableCategoryCard(
                 HorizontalDivider()
                 Column(modifier = Modifier.padding(16.dp)) {
                     templates.forEach { template ->
-                        ExpandableTemplateItem(template, onEditClick = { onEditClick(template) })
+                        ExpandableTemplateItem(template, canEdit = canEdit, onEditClick = { onEditClick(template) })
                         Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
@@ -1520,7 +1543,7 @@ fun ExpandableCategoryCard(
 }
 
 @Composable
-fun ExpandableTemplateItem(template: JobTemplate, onEditClick: () -> Unit) {
+fun ExpandableTemplateItem(template: JobTemplate, canEdit: Boolean, onEditClick: () -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     var selectedImageIndex by remember { mutableStateOf<Int?>(null) }
 
@@ -1549,10 +1572,12 @@ fun ExpandableTemplateItem(template: JobTemplate, onEditClick: () -> Unit) {
                 val displayName = if (template.type.isNotBlank()) "${template.name} (${template.type})" else template.name
                 Text(text = displayName, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.primary)
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = onEditClick, modifier = Modifier.size(24.dp)) {
-                        Icon(Icons.Filled.Edit, contentDescription = "Düzenle", tint = Color.Gray)
+                    if (canEdit) {
+                        IconButton(onClick = onEditClick, modifier = Modifier.size(24.dp)) {
+                            Icon(Icons.Filled.Edit, contentDescription = "Düzenle", tint = Color.Gray)
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
                     }
-                    Spacer(modifier = Modifier.width(16.dp))
                     Icon(
                         imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
                         contentDescription = null,
@@ -1772,6 +1797,7 @@ fun JobTemplateForm(
 fun PropertyTemplatesTabContent(
     projectId: String,
     nodeTypes: List<String>,
+    currentUserMember: com.sorodeveloper.insaatcebimde.domain.model.MemberInfo?,
     onAddNodeType: (String) -> Unit
 ) {
     val viewModel: PropertyTemplateViewModel = hiltViewModel()
@@ -1801,14 +1827,16 @@ fun PropertyTemplatesTabContent(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(text = "Henüz mülk şablonu oluşturulmadı.", color = Color.Gray)
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(onClick = {
-                    editingTemplate = null
-                    showBottomSheet = true
-                }) {
-                    Icon(Icons.Filled.Add, contentDescription = "Ekle")
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Mülk Şablonu Oluştur")
+                if (currentUserMember?.hasPermission(Permission.MANAGE_NODES) == true) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(onClick = {
+                        editingTemplate = null
+                        showBottomSheet = true
+                    }) {
+                        Icon(Icons.Filled.Add, contentDescription = "Ekle")
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Mülk Şablonu Oluştur")
+                    }
                 }
             }
         } else {
@@ -1820,6 +1848,7 @@ fun PropertyTemplatesTabContent(
                     PropertyTemplateCard(
                         template = template,
                         jobTemplates = jobTemplates,
+                        canEdit = currentUserMember?.hasPermission(Permission.MANAGE_NODES) == true,
                         onEditClick = {
                             editingTemplate = template
                             showBottomSheet = true
@@ -1828,14 +1857,16 @@ fun PropertyTemplatesTabContent(
                 }
             }
 
-            FloatingActionButton(
-                onClick = {
-                    editingTemplate = null
-                    showBottomSheet = true
-                },
-                modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)
-            ) {
-                Icon(Icons.Filled.Add, contentDescription = "Mülk Şablonu Ekle")
+            if (currentUserMember?.hasPermission(Permission.MANAGE_NODES) == true) {
+                FloatingActionButton(
+                    onClick = {
+                        editingTemplate = null
+                        showBottomSheet = true
+                    },
+                    modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)
+                ) {
+                    Icon(Icons.Filled.Add, contentDescription = "Mülk Şablonu Ekle")
+                }
             }
         }
 
@@ -1876,6 +1907,7 @@ fun PropertyTemplatesTabContent(
 fun PropertyTemplateCard(
     template: PropertyTemplate,
     jobTemplates: List<JobTemplate>,
+    canEdit: Boolean,
     onEditClick: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -1916,10 +1948,12 @@ fun PropertyTemplateCard(
                     )
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = onEditClick, modifier = Modifier.size(24.dp)) {
-                        Icon(Icons.Filled.Edit, contentDescription = "Düzenle", tint = Color.Gray)
+                    if (canEdit) {
+                        IconButton(onClick = onEditClick, modifier = Modifier.size(24.dp)) {
+                            Icon(Icons.Filled.Edit, contentDescription = "Düzenle", tint = Color.Gray)
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
                     }
-                    Spacer(modifier = Modifier.width(16.dp))
                     Icon(
                         imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
                         contentDescription = null,

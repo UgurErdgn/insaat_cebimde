@@ -46,7 +46,7 @@ fun MembersTab(
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         // Üst başlık + Davet butonu
-        if (currentUserMember?.hasPermission(Permission.INVITE) == true) {
+        if (currentUserMember?.hasPermission(Permission.INVITE_MEMBERS) == true) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

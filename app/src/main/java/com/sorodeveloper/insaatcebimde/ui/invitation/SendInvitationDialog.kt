@@ -390,17 +390,52 @@ fun PermissionPickerDialog(
 ) {
     var tempSelected by remember { mutableStateOf(selectedPermissions) }
 
+    // Yetkileri kategorilere göre grupla
+    val groupedPermissions = grantablePermissions.groupBy { it.category }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         shape = RoundedCornerShape(20.dp),
         title = { Text("Yetkileri Seçin", fontWeight = FontWeight.Bold) },
         text = {
-            Column {
-                grantablePermissions.forEach { permission ->
-                    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(checked = permission in tempSelected, onCheckedChange = { checked -> tempSelected = if (checked) tempSelected + permission else tempSelected - permission })
-                        Spacer(Modifier.width(8.dp))
-                        Text(permission.displayName, style = MaterialTheme.typography.bodyMedium)
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth().heightIn(max = 400.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                groupedPermissions.forEach { (category, permissions) ->
+                    item {
+                        Column {
+                            Text(
+                                text = category,
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                            ) {
+                                Column(modifier = Modifier.padding(8.dp)) {
+                                    permissions.forEach { permission ->
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).clickable {
+                                                tempSelected = if (permission in tempSelected) tempSelected - permission else tempSelected + permission
+                                            },
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Checkbox(
+                                                checked = permission in tempSelected,
+                                                onCheckedChange = { checked ->
+                                                    tempSelected = if (checked) tempSelected + permission else tempSelected - permission
+                                                }
+                                            )
+                                            Spacer(Modifier.width(8.dp))
+                                            Text(permission.displayName, style = MaterialTheme.typography.bodyMedium)
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
