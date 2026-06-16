@@ -93,12 +93,14 @@ export const updateMemberPermissions = onCall(async (request) => {
   });
 
   // Users dökümanını da güncelle
-  await db.collection("users").doc(targetUserId).update({
-    [`projectPermissions.${projectId}`]: {
-      role: newRoleName || targetMember.roleName,
-      canDelegate: (newPermissions as string[]).includes("INVITE"),
+  await db.collection("users").doc(targetUserId).set({
+    projectPermissions: {
+      [projectId]: {
+        role: newRoleName || targetMember.roleName,
+        canDelegate: (newPermissions as string[]).includes("INVITE"),
+      },
     },
-  });
+  }, { merge: true });
 
   logger.info(
     `Yetki güncellendi: ${targetUserId} @ ${projectId} by ${requesterId}`
@@ -192,9 +194,13 @@ export const removeMember = onCall(async (request) => {
   });
 
   // Users dökümanından da kaldır
-  await db.collection("users").doc(targetUserId).update({
-    [`projectPermissions.${projectId}`]: FieldValue.delete(),
-  });
+  try {
+    await db.collection("users").doc(targetUserId).update({
+      [`projectPermissions.${projectId}`]: FieldValue.delete(),
+    });
+  } catch (error) {
+    logger.warn(`Users dokumanindan silinirken hata olustu (Belki de zaten yoktu): ${error}`);
+  }
 
   logger.info(
     `Üye çıkarıldı: ${targetUserId} @ ${projectId} by ${requesterId}`

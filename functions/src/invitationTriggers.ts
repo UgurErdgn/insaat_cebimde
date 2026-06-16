@@ -18,6 +18,7 @@ const db = getFirestore("default");
  */
 export const onInvitationCreated = onDocumentCreated({
   document: "invitations/{invitationId}",
+  database: "default",
 }, async (event) => {
   const snapshot = event.data;
   if (!snapshot) return;
@@ -117,6 +118,7 @@ export const onInvitationCreated = onDocumentCreated({
  */
 export const onInvitationUpdated = onDocumentUpdated({
   document: "invitations/{invitationId}",
+  database: "default",
 }, async (event) => {
   const beforeData = event.data?.before.data();
   const afterData = event.data?.after.data();
@@ -155,12 +157,14 @@ export const onInvitationUpdated = onDocumentUpdated({
       });
 
       // Kullanıcının users dökümanındaki projectPermissions'ı da güncelle
-      await db.collection("users").doc(inviteeId).update({
-        [`projectPermissions.${projectId}`]: {
-          role: grantedRoleName || "Çalışan",
-          canDelegate: (grantedPermissions || []).includes("INVITE"),
+      await db.collection("users").doc(inviteeId).set({
+        projectPermissions: {
+          [projectId]: {
+            role: grantedRoleName || "Çalışan",
+            canDelegate: (grantedPermissions || []).includes("INVITE"),
+          },
         },
-      });
+      }, { merge: true });
 
       logger.info(
         `Üye eklendi: ${inviteeId} -> proje ${projectId} (Davet: ${invitationId})`

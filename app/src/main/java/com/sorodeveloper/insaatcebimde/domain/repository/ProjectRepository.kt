@@ -46,6 +46,10 @@ interface ProjectRepository {
     suspend fun updatePropertyTemplate(template: PropertyTemplate): Result<Unit>
     suspend fun getPropertyTemplates(projectId: String): Result<List<PropertyTemplate>>
 
+    // Tüm düğümleri ve kategorileri getir (Scope seçimi için)
+    suspend fun getAllProjectNodes(projectId: String): Result<List<ProjectNode>>
+    suspend fun getAllJobCategories(projectId: String): Result<List<String>>
+
     // ---- NodeJob İşlemleri ----
     suspend fun getNodeJobs(projectId: String, nodeId: String): Result<List<NodeJob>>
     fun observeNodeJobs(projectId: String, nodeId: String): Flow<List<NodeJob>>

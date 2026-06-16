@@ -288,6 +288,41 @@ class ProjectRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getAllProjectNodes(projectId: String): Result<List<ProjectNode>> {
+        return try {
+            var snapshot = try {
+                firestore.collection("projects").document(projectId).collection("nodes")
+                    .get(com.google.firebase.firestore.Source.CACHE).await()
+            } catch (e: Exception) { null }
+
+            if (snapshot == null || snapshot.isEmpty) {
+                snapshot = firestore.collection("projects").document(projectId).collection("nodes")
+                    .get(com.google.firebase.firestore.Source.SERVER).await()
+            }
+
+            val allNodes = snapshot.documents.mapNotNull {
+                val node = it.toObject(ProjectNode::class.java)
+                val isDeleted = it.getBoolean("isDeleted") ?: false
+                if (isDeleted) null else node
+            }
+            Result.success(allNodes)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getAllJobCategories(projectId: String): Result<List<String>> {
+        return try {
+            val snapshot = firestore.collection("projects").document(projectId).collection("jobTemplates")
+                .get(com.google.firebase.firestore.Source.SERVER).await()
+            
+            val categories = snapshot.documents.mapNotNull { it.getString("category") }.distinct()
+            Result.success(categories)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     override suspend fun getDeletedNodesWithDetails(projectId: String): Result<List<com.sorodeveloper.insaatcebimde.domain.model.DeletedNodeDetail>> {
         return try {
             // Tüm düğümleri Cache'den al, yoksa Server'dan al

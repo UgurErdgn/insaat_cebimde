@@ -235,8 +235,8 @@ fun ProjectDetailScreen(
                     currentUserMember = membersUiState.currentUserMember!!,
                     projectId = projectId,
                     projectName = project?.name ?: "",
-                    availableNodes = emptyList(), // TODO: Node listesini çek
-                    availableCategories = emptyList(), // TODO: Kategori listesini çek
+                    availableNodes = viewModel.availableNodes.value,
+                    availableCategories = viewModel.availableCategories.value,
                     isSaving = invitationUiState.isSaving,
                     onDismiss = { showInviteDialog = false },
                     onSend = { inviteeId, permissions, scopes, roleName ->
