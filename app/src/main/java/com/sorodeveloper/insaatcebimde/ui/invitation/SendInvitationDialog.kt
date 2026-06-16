@@ -270,28 +270,8 @@ fun ScopeSelectionSheetContent(
     var selectedNodes by remember { mutableStateOf(setOf<String>()) }
     var selectedCategories by remember { mutableStateOf(setOf<String>()) }
 
-    // Subset Math Helper Functions
-    fun isNodeSelectable(node: ProjectNode): Boolean {
-        if (!currentUserScopes.isRestricted) return true
-        if (currentUserScopes.nodeCategories.containsKey(node.id)) return true
-        for (ancestorId in node.ancestors) {
-            if (currentUserScopes.nodeCategories.containsKey(ancestorId)) return true
-        }
-        return false
-    }
-
-    fun isNodeVisible(node: ProjectNode): Boolean {
-        if (!currentUserScopes.isRestricted) return true
-        if (isNodeSelectable(node)) return true
-        // Atasi oldugu child'lar kullaniciya aciksa visible yap
-        return currentUserScopes.nodeCategories.keys.any { allowedId ->
-            val allowedNode = availableNodes.find { it.id == allowedId }
-            allowedNode?.ancestors?.contains(node.id) == true
-        }
-    }
-
     val currentParentId = currentPath.lastOrNull()?.id
-    val levelNodes = availableNodes.filter { it.parentId == currentParentId && isNodeVisible(it) }
+    val levelNodes = availableNodes.filter { it.parentId == currentParentId && currentUserScopes.isNodeVisible(it.id, it.ancestors, availableNodes) }
 
     Column(modifier = Modifier.fillMaxWidth().padding(16.dp).padding(bottom = 32.dp)) {
         Text("Kural Ekle", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
@@ -315,13 +295,14 @@ fun ScopeSelectionSheetContent(
         
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
-            modifier = Modifier.heightIn(max = 200.dp).fillMaxWidth(),
+            modifier = Modifier.heightIn(max = 240.dp).fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(top = 4.dp, bottom = 24.dp)
         ) {
             items(levelNodes) { node ->
-                val hasChildren = availableNodes.any { it.parentId == node.id && isNodeVisible(it) }
-                val selectable = isNodeSelectable(node)
+                val hasChildren = availableNodes.any { it.parentId == node.id && currentUserScopes.isNodeVisible(it.id, it.ancestors, availableNodes) }
+                val selectable = currentUserScopes.isNodeSelectable(node.id, node.ancestors)
                 val isSelected = selectedNodes.contains(node.id)
 
                 Card(
@@ -352,7 +333,7 @@ fun ScopeSelectionSheetContent(
                             }
                         }, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyMedium)
                         
-                        if (hasChildren) {
+                        if (hasChildren && !isSelected) {
                             IconButton(onClick = { currentPath = currentPath + node }, modifier = Modifier.size(36.dp)) {
                                 Icon(Icons.Filled.ChevronRight, contentDescription = "İçine Gir", tint = MaterialTheme.colorScheme.primary)
                             }
@@ -363,7 +344,7 @@ fun ScopeSelectionSheetContent(
         }
         
         Spacer(Modifier.height(16.dp))
-        Divider()
+        HorizontalDivider()
         Spacer(Modifier.height(16.dp))
 
         Text("Hangi İşleri Görebilsin?", style = MaterialTheme.typography.labelLarge)
@@ -401,8 +382,8 @@ fun ScopeSelectionSheetContent(
 }
 
 @Composable
-private fun PermissionPickerDialog(
-    grantablePermissions: Set<Permission>,
+fun PermissionPickerDialog(
+    grantablePermissions: Set<com.sorodeveloper.insaatcebimde.domain.model.Permission>,
     selectedPermissions: Set<Permission>,
     onDismiss: () -> Unit,
     onConfirm: (Set<Permission>) -> Unit

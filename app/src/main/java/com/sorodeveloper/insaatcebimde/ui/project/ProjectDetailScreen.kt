@@ -103,6 +103,7 @@ fun ProjectDetailScreen(
     val invitationViewModel: InvitationViewModel = hiltViewModel()
     val invitationUiState by invitationViewModel.uiState.collectAsState()
     var showInviteDialog by remember { mutableStateOf(false) }
+    var memberToEdit by remember { mutableStateOf<com.sorodeveloper.insaatcebimde.domain.model.MemberInfo?>(null) }
     val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
 
     // Ekip üyelerini dinlemeye başla
@@ -209,7 +210,9 @@ fun ProjectDetailScreen(
                     0 -> ProgressTabContent(
                         projectId = projectId,
                         nodeTypes = project?.nodeTypes ?: listOf("Blok", "Kat", "Daire"),
-                        onAddNodeType = { viewModel.addNodeType(it) }
+                        onAddNodeType = { viewModel.addNodeType(it) },
+                        currentUserMember = membersUiState.currentUserMember,
+                        availableNodes = viewModel.availableNodes.value
                     )
                     1 -> TemplatesTabContent(
                         projectId = projectId,
@@ -221,7 +224,7 @@ fun ProjectDetailScreen(
                         currentUserMember = membersUiState.currentUserMember,
                         isSaving = membersUiState.isSaving,
                         onInviteClick = { showInviteDialog = true },
-                        onEditMember = { /* TODO: Yetki düzenleme dialogu */ },
+                        onEditMember = { memberToEdit = it },
                         onRemoveMember = { member ->
                             membersViewModel.removeMember(member.uid)
                         }
@@ -252,6 +255,28 @@ fun ProjectDetailScreen(
                     }
                 )
             }
+
+            // Yetki düzenleme dialogu
+            if (memberToEdit != null && membersUiState.currentUserMember != null) {
+                com.sorodeveloper.insaatcebimde.ui.members.EditMemberDialog(
+                    member = memberToEdit!!,
+                    availableNodes = viewModel.availableNodes.value,
+                    availableCategories = viewModel.availableCategories.value,
+                    grantablePermissions = membersUiState.currentUserMember!!.grantablePermissions(),
+                    currentUserScopes = membersUiState.currentUserMember!!.scopes,
+                    isSaving = membersUiState.isSaving,
+                    onDismiss = { memberToEdit = null },
+                    onSave = { newScopes, newPermissions, newRoleName ->
+                        membersViewModel.updateMemberPermissions(
+                            targetUserId = memberToEdit!!.uid,
+                            newScopes = newScopes,
+                            newPermissions = com.sorodeveloper.insaatcebimde.domain.model.Permission.toKeys(newPermissions),
+                            newRoleName = newRoleName
+                        )
+                        memberToEdit = null
+                    }
+                )
+            }
         }
     }
 }
@@ -261,7 +286,9 @@ fun ProjectDetailScreen(
 fun ProgressTabContent(
     projectId: String,
     nodeTypes: List<String>,
-    onAddNodeType: (String) -> Unit
+    onAddNodeType: (String) -> Unit,
+    currentUserMember: com.sorodeveloper.insaatcebimde.domain.model.MemberInfo?,
+    availableNodes: List<com.sorodeveloper.insaatcebimde.domain.model.ProjectNode>
 ) {
     val nodeViewModel: ProjectNodeViewModel = hiltViewModel()
     val propertyTemplateViewModel: PropertyTemplateViewModel = hiltViewModel()
@@ -275,6 +302,22 @@ fun ProgressTabContent(
     val jobTemplates by jobTemplateViewModel.templates
 
     val nodeJobs by nodeViewModel.nodeJobs
+
+    // --- FİLTRELEME İŞLEMLERİ ---
+    val visibleChildNodes = remember(childNodes, currentUserMember, availableNodes) {
+        childNodes.filter { node ->
+            currentUserMember?.scopes?.isNodeVisible(node.id, node.ancestors, availableNodes) ?: true
+        }
+    }
+    val currentNode = currentPath.lastOrNull()
+
+    val visibleNodeJobs = remember(nodeJobs, currentUserMember, currentNode) {
+        if (currentNode == null) emptyList()
+        else nodeJobs.filter { job ->
+            currentUserMember?.scopes?.hasAccessToJob(job.category, currentNode.id, currentNode.ancestors) ?: true
+        }
+    }
+    // ----------------------------
 
     var selectedTab by remember { mutableIntStateOf(1) } // 0: İşleri, 1: Bağlı Mülkler
     var showAddNodeSheet by remember { mutableStateOf(false) }
@@ -294,9 +337,6 @@ fun ProgressTabContent(
             jobTemplateViewModel.loadTemplates(projectId)
         }
     }
-
-    val currentNode = currentPath.lastOrNull()
-
     LaunchedEffect(currentNode?.id) {
         currentNode?.let {
             nodeViewModel.loadNodeJobs(projectId, it.id)
@@ -375,7 +415,7 @@ fun ProgressTabContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            val activeTab = if (childNodes.isEmpty()) 0 else selectedTab
+            val activeTab = if (visibleChildNodes.isEmpty()) 0 else selectedTab
 
             // Seçili Düğüm Başlığı
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
@@ -405,7 +445,7 @@ fun ProgressTabContent(
                         )
                     }
                     
-                    if (childNodes.isNotEmpty()) {
+                    if (visibleChildNodes.isNotEmpty()) {
                         Box(modifier = Modifier.width(1.dp).fillMaxHeight().background(purpleColor))
                         
                         Box(
@@ -431,7 +471,7 @@ fun ProgressTabContent(
             // Alt İçerikler
             Box(modifier = Modifier.fillMaxSize().weight(1f)) {
                 androidx.compose.animation.AnimatedVisibility(
-                    visible = isLoading && childNodes.isEmpty() && nodeJobs.isEmpty(),
+                    visible = isLoading && visibleChildNodes.isEmpty() && visibleNodeJobs.isEmpty(),
                     enter = fadeIn(),
                     exit = fadeOut(),
                     modifier = Modifier.fillMaxSize()
@@ -445,7 +485,7 @@ fun ProgressTabContent(
                 }
 
                 androidx.compose.animation.AnimatedVisibility(
-                    visible = !isLoading || childNodes.isNotEmpty() || nodeJobs.isNotEmpty(),
+                    visible = !isLoading || visibleChildNodes.isNotEmpty() || visibleNodeJobs.isNotEmpty(),
                     enter = fadeIn(),
                     exit = fadeOut(),
                     modifier = Modifier.fillMaxSize()
@@ -455,7 +495,7 @@ fun ProgressTabContent(
                             currentNode = currentNode,
                             propertyTemplates = propertyTemplates,
                             jobTemplates = jobTemplates,
-                            nodeJobs = nodeJobs,
+                            nodeJobs = visibleNodeJobs,
                             onAssignTemplateClick = { showTemplateSheet = true },
                             onUpdateJobProgress = { jobId, progress ->
                                 currentNode?.let {
@@ -468,7 +508,7 @@ fun ProgressTabContent(
                         
                         NodeChildrenContent(
                             currentNode = currentNode,
-                            childNodes = childNodes,
+                            childNodes = visibleChildNodes,
                             onNodeClick = { nodeViewModel.navigateToNode(it) },
                             onAddClick = { showAddNodeSheet = true },
                             onDeleteNode = { nodeToDelete ->

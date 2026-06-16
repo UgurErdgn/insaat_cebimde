@@ -116,7 +116,7 @@ fun CreateProjectScreen(
                     maxLines = 5
                 )
 
-                Divider(modifier = Modifier.padding(vertical = 8.dp))
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                 Text(
                     text = "Müteahhit Bilgileri",
                     style = MaterialTheme.typography.titleMedium,

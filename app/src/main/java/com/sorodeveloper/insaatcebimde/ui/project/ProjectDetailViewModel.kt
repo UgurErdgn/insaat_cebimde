@@ -71,4 +71,30 @@ class ProjectDetailViewModel @Inject constructor(
             projectRepository.updateProject(updatedProject)
         }
     }
+
+    fun updateMember(
+        targetUserId: String,
+        newScopes: com.sorodeveloper.insaatcebimde.domain.model.MemberScopes,
+        newPermissions: Set<com.sorodeveloper.insaatcebimde.domain.model.Permission>,
+        newRoleName: String,
+        onComplete: (Boolean) -> Unit
+    ) {
+        viewModelScope.launch {
+            val result = projectRepository.requestMemberUpdate(
+                projectId = projectId,
+                targetUserId = targetUserId,
+                newPermissions = com.sorodeveloper.insaatcebimde.domain.model.Permission.toKeys(newPermissions),
+                newScopes = newScopes,
+                newRoleName = newRoleName
+            )
+            onComplete(result.isSuccess)
+        }
+    }
+
+    fun removeMember(targetUserId: String, onComplete: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            val result = projectRepository.removeMember(projectId, targetUserId)
+            onComplete(result.isSuccess)
+        }
+    }
 }

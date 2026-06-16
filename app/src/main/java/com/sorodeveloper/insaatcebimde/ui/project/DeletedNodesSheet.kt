@@ -100,7 +100,7 @@ fun DeletedNodesSheet(
 
                             if (detail.deletedChildrenNames.isNotEmpty()) {
                                 Spacer(modifier = Modifier.height(8.dp))
-                                Divider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+                                HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
                                     text = "Bununla Birlikte Silinenler:",
