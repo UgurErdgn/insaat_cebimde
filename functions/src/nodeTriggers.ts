@@ -77,9 +77,9 @@ export const toggleNodeDelete = onCall(async (request) => {
       totalDescendantProgress += (jobData.progress || 0);
       const jId = jobData.jobTemplateId || jobDoc.id;
       if (!jobStats[jId]) {
-        jobStats[jId] = { count: 0, totalProgress: 0 };
+        jobStats[jId] = { totalCount: 0, totalProgress: 0 };
       }
-      jobStats[jId].count += 1;
+      jobStats[jId].totalCount += 1;
       jobStats[jId].totalProgress += (jobData.progress || 0);
     }
   });
@@ -98,8 +98,8 @@ export const toggleNodeDelete = onCall(async (request) => {
 
       // jobStats güncellemesi
       for (const [jId, stats] of Object.entries(jobStats) as [string, any][]) {
-        if (stats.count > 0) {
-          updates[`jobStats.${jId}.count`] = FieldValue.increment(stats.count * multiplier);
+        if (stats.totalCount > 0) {
+          updates[`jobStats.${jId}.totalCount`] = FieldValue.increment(stats.totalCount * multiplier);
         }
         if (stats.totalProgress > 0) {
           updates[`jobStats.${jId}.totalProgress`] = FieldValue.increment(stats.totalProgress * multiplier);

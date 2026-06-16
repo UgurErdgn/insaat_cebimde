@@ -108,4 +108,35 @@ data class MemberScopes(
         
         return false
     }
+
+    /**
+     * Kullanıcının bu mülkte (doğrudan veya miras yoluyla) HANGİ kategorilere yetkili olduğunu döndürür.
+     * Bu fonksiyon, makro (genel) ilerleme hesaplanırken kullanılır.
+     * @return null -> Tüm işlere (kategorilere) yetkili.
+     *         emptySet() -> Bu mülke yetkisi yok (sadece child'larına var, o yüzden genel ilerleme GİZLENMELİ).
+     *         Set<String> -> Sadece bu spesifik kategorilere yetkili.
+     */
+    fun getAllowedCategoriesForNode(nodeId: String, ancestors: List<String>): Set<String>? {
+        if (!restricted) return null // Kısıtlama yok, tam yetki
+        if (!isNodeSelectable(nodeId, ancestors)) return emptySet() // Bu mülkte yetkisi yok
+
+        val allowedCats = mutableSetOf<String>()
+        var hasUnlimitedAccess = false
+
+        // Hem kendi üzerindeki hem de atalarından gelen yetkileri topla (Additive)
+        val allNodesToCheck = ancestors + nodeId
+        for (id in allNodesToCheck) {
+            if (nodeCategories.containsKey(id)) {
+                val cats = nodeCategories[id]!!
+                if (cats.isEmpty()) {
+                    hasUnlimitedAccess = true
+                } else {
+                    allowedCats.addAll(cats)
+                }
+            }
+        }
+
+        if (hasUnlimitedAccess) return null // Herhangi bir seviyeden "Tüm İşler" yetkisi geldiyse
+        return allowedCats
+    }
 }

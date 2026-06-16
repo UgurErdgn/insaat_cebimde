@@ -415,7 +415,13 @@ fun ProgressTabContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            val activeTab = if (visibleChildNodes.isEmpty()) 0 else selectedTab
+            val hasJobsAccess = currentNode != null && (currentUserMember?.scopes?.getAllowedCategoriesForNode(currentNode.id, currentNode.ancestors) != emptySet<String>())
+            
+            val activeTab = when {
+                !hasJobsAccess -> 1 // İşlere yetkisi yoksa mecburen bağlı mülkler
+                visibleChildNodes.isEmpty() -> 0 // Alt mülk yoksa mecburen işler
+                else -> selectedTab
+            }
 
             // Seçili Düğüm Başlığı
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
@@ -428,31 +434,35 @@ fun ProgressTabContent(
                         .clip(RoundedCornerShape(8.dp))
                         .border(1.dp, purpleColor, RoundedCornerShape(8.dp))
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .background(if (activeTab == 0) purpleColor else Color.Transparent)
-                            .clickable { selectedTab = 0 }
-                            .padding(vertical = 8.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "${currentNode?.name ?: ""} İşleri", 
-                            color = if (activeTab == 0) Color.White else purpleColor,
-                            fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.labelLarge,
-                            textAlign = TextAlign.Center
-                        )
+                    if (hasJobsAccess) {
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .background(if (activeTab == 0) purpleColor else Color.Transparent)
+                                .clickable { selectedTab = 0 }
+                                .padding(vertical = 8.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "${currentNode?.name ?: ""} İşleri", 
+                                color = if (activeTab == 0) Color.White else purpleColor,
+                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.labelLarge,
+                                textAlign = TextAlign.Center
+                            )
+                        }
                     }
                     
-                    if (visibleChildNodes.isNotEmpty()) {
+                    if (hasJobsAccess && visibleChildNodes.isNotEmpty()) {
                         Box(modifier = Modifier.width(1.dp).fillMaxHeight().background(purpleColor))
-                        
+                    }
+                    
+                    if (visibleChildNodes.isNotEmpty() || !hasJobsAccess) {
                         Box(
                             modifier = Modifier
                                 .weight(1f)
                                 .background(if (activeTab == 1) purpleColor else Color.Transparent)
-                                .clickable { selectedTab = 1 }
+                                .clickable { if (hasJobsAccess) selectedTab = 1 } // Tek sekmeyse tıklamaya gerek yok
                                 .padding(vertical = 8.dp),
                             contentAlignment = Alignment.Center
                         ) {
@@ -509,6 +519,7 @@ fun ProgressTabContent(
                         NodeChildrenContent(
                             currentNode = currentNode,
                             childNodes = visibleChildNodes,
+                            currentUserMember = currentUserMember,
                             onNodeClick = { nodeViewModel.navigateToNode(it) },
                             onAddClick = { showAddNodeSheet = true },
                             onDeleteNode = { nodeToDelete ->
@@ -864,6 +875,13 @@ fun NodeJobsContent(
             // İsim ve kategori bilgisi zaten backend tarafından kopyalandığı için direkt okuyoruz.
             val allJobs = nodeJobs.filter { !it.isDeleted }
             val groupedJobs = allJobs.groupBy { it.category }
+            
+            // YEREL İLERLEME (MICRO VIEW): Sadece kullanıcının "görebildiği" (allJobs) işlerin ortalaması
+            val dynamicLocalProgress = if (allJobs.isNotEmpty()) {
+                allJobs.sumOf { it.progress } / allJobs.size
+            } else {
+                0
+            }
 
             var expandedCategory by remember { mutableStateOf<String?>(null) }
             var expandedJobId by remember { mutableStateOf<String?>(null) }
@@ -893,16 +911,16 @@ fun NodeJobsContent(
                 // --- PROGRESS BARS ---
                 item {
                     Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-                        Text("Yerel İlerleme (Bu Mülkün İşleri)", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
+                        Text("Yerel İlerleme (Yetkili Olduğunuz İşler)", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
                             LinearProgressIndicator(
-                                progress = { currentNode.localProgress / 100f },
+                                progress = { dynamicLocalProgress / 100f },
                                 modifier = Modifier.weight(1f).height(10.dp).clip(RoundedCornerShape(5.dp)),
                                 color = Color(0xFF4CAF50), // Yeşil
                                 trackColor = Color(0xFFE8F5E9)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("%${currentNode.localProgress}", fontWeight = FontWeight.Bold, color = Color(0xFF388E3C))
+                            Text("%${dynamicLocalProgress}", fontWeight = FontWeight.Bold, color = Color(0xFF388E3C))
                         }
                     }
                     HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
@@ -1082,27 +1100,53 @@ fun NodeJobsContent(
 fun NodeChildrenContent(
     currentNode: ProjectNode?,
     childNodes: List<ProjectNode>,
+    currentUserMember: com.sorodeveloper.insaatcebimde.domain.model.MemberInfo?,
     onNodeClick: (ProjectNode) -> Unit,
     onAddClick: () -> Unit,
     onDeleteNode: (ProjectNode) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
-        if (currentNode != null && currentNode.totalDescendantJobs > 0) {
-            val generalProgress = currentNode.totalDescendantProgress / currentNode.totalDescendantJobs
-            Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-                Text("Bağlı Mülklerin Genel İlerlemesi", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
-                    LinearProgressIndicator(
-                        progress = { generalProgress / 100f },
-                        modifier = Modifier.weight(1f).height(10.dp).clip(RoundedCornerShape(5.dp)),
-                        color = MaterialTheme.colorScheme.primary,
-                        trackColor = MaterialTheme.colorScheme.primaryContainer
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("%$generalProgress", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+        if (currentNode != null) {
+            val allowedCats = currentUserMember?.scopes?.getAllowedCategoriesForNode(currentNode.id, currentNode.ancestors)
+            
+            // MACRO VIEW (Genel İlerleme): Kullanıcı bu mülke tam/kategori bazlı yetkiliyse göster.
+            // Sadece alt mülklerine yetkiliyse (emptySet) gizle!
+            if (allowedCats != emptySet<String>()) {
+                var dynamicGenProg = 0
+                var dynamicGenCount = 0
+                
+                if (allowedCats == null) {
+                    // Sınırsız yetkili, tüm jobStats'ı topla (veya direkt totalDescendantProgress kullan)
+                    dynamicGenProg = currentNode.totalDescendantProgress
+                    dynamicGenCount = currentNode.totalDescendantJobs
+                } else {
+                    // Sadece izinli kategorilerin jobStats'ını topla
+                    currentNode.jobStats.values.forEach { stat ->
+                        if (allowedCats.contains(stat.category)) {
+                            dynamicGenProg += stat.totalProgress
+                            dynamicGenCount += stat.totalCount
+                        }
+                    }
+                }
+                
+                if (dynamicGenCount > 0) {
+                    val generalProgress = dynamicGenProg / dynamicGenCount
+                    Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                        Text("Makro İlerleme (Yetkili Olduğunuz İşler)", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
+                            LinearProgressIndicator(
+                                progress = { generalProgress / 100f },
+                                modifier = Modifier.weight(1f).height(10.dp).clip(RoundedCornerShape(5.dp)),
+                                color = MaterialTheme.colorScheme.primary,
+                                trackColor = MaterialTheme.colorScheme.primaryContainer
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("%$generalProgress", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+                    HorizontalDivider()
                 }
             }
-            HorizontalDivider()
         }
 
         Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
@@ -1131,10 +1175,38 @@ fun NodeChildrenContent(
                                 
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                                    Text("Yerel: %${child.localProgress}", style = MaterialTheme.typography.bodySmall, color = Color(0xFF388E3C), fontWeight = FontWeight.Bold)
-                                    if (child.totalDescendantJobs > 0) {
-                                        val genProg = child.totalDescendantProgress / child.totalDescendantJobs
-                                        Text("Genel: %$genProg", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                                    val childAllowedCats = currentUserMember?.scopes?.getAllowedCategoriesForNode(child.id, child.ancestors)
+                                    
+                                    if (childAllowedCats != emptySet<String>()) {
+                                        if (child.totalDescendantJobs > 0) {
+                                            var dynamicChildProg = 0
+                                            var dynamicChildCount = 0
+                                            
+                                            if (childAllowedCats == null) {
+                                                dynamicChildProg = child.totalDescendantProgress
+                                                dynamicChildCount = child.totalDescendantJobs
+                                            } else {
+                                                child.jobStats.values.forEach { stat ->
+                                                    if (childAllowedCats.contains(stat.category)) {
+                                                        dynamicChildProg += stat.totalProgress
+                                                        dynamicChildCount += stat.totalCount
+                                                    }
+                                                }
+                                            }
+                                            
+                                            if (dynamicChildCount > 0) {
+                                                val genProg = dynamicChildProg / dynamicChildCount
+                                                Text("Makro: %$genProg", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                                            } else {
+                                                Text("İş Yok", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                                            }
+                                        } else {
+                                            // Alt mülk yoksa (yaprak düğümse), sadece kendi yerel ilerlemesi vardır.
+                                            // Yerel işler jobStats'ta tutulmadığı için genel "localProgress" gösteriyoruz.
+                                            Text("Yerel: %${child.localProgress}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                                        }
+                                    } else {
+                                        Text("Kısmi Yetki (İçeri Girin)", style = MaterialTheme.typography.bodySmall, color = Color.Gray, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
                                     }
                                 }
                             }
