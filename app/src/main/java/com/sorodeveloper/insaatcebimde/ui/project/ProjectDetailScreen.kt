@@ -104,42 +104,37 @@ fun ProjectDetailScreen(
                         )
                     )
             ) {
-                CenterAlignedTopAppBar(
-                    title = { 
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp, bottom = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(
+                        onClick = onNavigateBack,
+                        modifier = Modifier
+                            .padding(start = 12.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f))
+                    ) {
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "Geri")
+                    }
+                    
+                    Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
                         if (isLoading) {
                             CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.primary, strokeWidth = 2.dp)
                         } else {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    text = project?.name ?: "Bilinmeyen İnşaat", 
-                                    fontWeight = FontWeight.ExtraBold,
-                                    style = MaterialTheme.typography.titleLarge
-                                )
-                                Text(
-                                    text = "Kumanda Paneli",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                            }
+                            Text(
+                                text = project?.name ?: "Bilinmeyen İnşaat", 
+                                fontWeight = FontWeight.ExtraBold,
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
                         }
-                    },
-                    navigationIcon = {
-                        IconButton(
-                            onClick = onNavigateBack,
-                            modifier = Modifier
-                                .padding(start = 8.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f))
-                        ) {
-                            Icon(Icons.Filled.ArrowBack, contentDescription = "Geri")
-                        }
-                    },
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = Color.Transparent,
-                        titleContentColor = MaterialTheme.colorScheme.onSurface,
-                        navigationIconContentColor = MaterialTheme.colorScheme.onSurface
-                    )
-                )
+                    }
+                    
+                    Spacer(modifier = Modifier.width(60.dp)) // To keep title centered (matches IconButton + padding width)
+                }
                 // Ana TabRow
                 TabRow(
                     selectedTabIndex = selectedTabIndex,
