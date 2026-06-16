@@ -1,7 +1,7 @@
 package com.sorodeveloper.insaatcebimde.ui.project
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -12,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -92,42 +93,68 @@ fun ProjectDetailScreen(
     Scaffold(
         topBar = {
             Column(
-                modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                                MaterialTheme.colorScheme.surface
+                            )
+                        )
+                    )
             ) {
                 CenterAlignedTopAppBar(
                     title = { 
                         if (isLoading) {
-                            CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
+                            CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.primary, strokeWidth = 2.dp)
                         } else {
-                            Text(
-                                text = project?.name ?: "Bilinmeyen İnşaat", 
-                                fontWeight = FontWeight.Bold,
-                                style = MaterialTheme.typography.titleLarge
-                            ) 
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = project?.name ?: "Bilinmeyen İnşaat", 
+                                    fontWeight = FontWeight.ExtraBold,
+                                    style = MaterialTheme.typography.titleLarge
+                                )
+                                Text(
+                                    text = "Kumanda Paneli",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
                         }
                     },
                     navigationIcon = {
-                        IconButton(onClick = onNavigateBack) {
+                        IconButton(
+                            onClick = onNavigateBack,
+                            modifier = Modifier
+                                .padding(start = 8.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f))
+                        ) {
                             Icon(Icons.Filled.ArrowBack, contentDescription = "Geri")
                         }
                     },
                     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        titleContentColor = MaterialTheme.colorScheme.primary,
-                        navigationIconContentColor = MaterialTheme.colorScheme.primary
+                        containerColor = Color.Transparent,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onSurface
                     )
                 )
                 // Ana TabRow
                 TabRow(
                     selectedTabIndex = selectedTabIndex,
-                    containerColor = MaterialTheme.colorScheme.surface,
+                    containerColor = Color.Transparent,
                     contentColor = MaterialTheme.colorScheme.primary,
+                    divider = {},
                     indicator = { tabPositions ->
                         if (selectedTabIndex < tabPositions.size) {
                             TabRowDefaults.SecondaryIndicator(
-                                modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
+                                modifier = Modifier
+                                    .tabIndicatorOffset(tabPositions[selectedTabIndex])
+                                    .padding(horizontal = 32.dp)
+                                    .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)),
                                 color = MaterialTheme.colorScheme.primary,
-                                height = 3.dp
+                                height = 4.dp
                             )
                         }
                     }
@@ -139,7 +166,7 @@ fun ProjectDetailScreen(
                             text = { 
                                 Text(
                                     text = title,
-                                    fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal,
+                                    fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Medium,
                                     color = if (selectedTabIndex == index) MaterialTheme.colorScheme.primary else Color.Gray
                                 ) 
                             }
@@ -325,9 +352,26 @@ fun ProgressTabContent(
 
             // Alt İçerikler
             Box(modifier = Modifier.fillMaxSize().weight(1f)) {
-                if (isLoading && childNodes.isEmpty()) {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                } else {
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = isLoading && childNodes.isEmpty() && nodeJobs.isEmpty(),
+                    enter = fadeIn(),
+                    exit = fadeOut(),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize().padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(5) { SkeletonJobCard() }
+                    }
+                }
+
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = !isLoading || childNodes.isNotEmpty() || nodeJobs.isNotEmpty(),
+                    enter = fadeIn(),
+                    exit = fadeOut(),
+                    modifier = Modifier.fillMaxSize()
+                ) {
                     if (activeTab == 0) {
                         NodeJobsContent(
                             currentNode = currentNode,
@@ -439,10 +483,51 @@ fun ProgressTabContent(
     }
 }
 
+@Composable
+fun SkeletonJobCard() {
+    val infiniteTransition = rememberInfiniteTransition()
+    val alpha by infiniteTransition.animateFloat(
+        initialValue = 0.2f,
+        targetValue = 0.6f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
+
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(20.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(Color.Gray.copy(alpha = alpha))
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Box(
+                modifier = Modifier
+                    .width(40.dp)
+                    .height(20.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(Color.Gray.copy(alpha = alpha))
+            )
+        }
+    }
+}
+
 fun generateNames(prefix: String, count: Int, isLetter: Boolean, startValue: String, step: Int): List<String> {
     val names = mutableListOf<String>()
     if (isLetter) {
-        val startChar = startValue.firstOrNull()?.uppercaseChar() ?: 'A'
+        val startChar = startValue.take(1).uppercase(java.util.Locale.forLanguageTag("tr-TR")).firstOrNull() ?: 'A'
         for (i in 0 until count) {
             val char = (startChar.code + (i * step)).toChar()
             names.add("$prefix $char".trim())
@@ -557,7 +642,7 @@ fun BatchCreateNodeForm(
                 onValueChange = { input -> 
                     if (isLetter) {
                         // Sadece harflere izin ver (tek harf olsun)
-                        val letters = input.filter { it.isLetter() }.take(1).uppercase()
+                        val letters = input.filter { it.isLetter() }.take(1).uppercase(java.util.Locale.forLanguageTag("tr-TR"))
                         startVal = letters
                     } else {
                         // Sadece sayılara izin ver
@@ -735,7 +820,7 @@ fun NodeJobsContent(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Text(
-                                            text = category.uppercase(),
+                                            text = category.uppercase(java.util.Locale.forLanguageTag("tr-TR")),
                                             fontWeight = FontWeight.Bold,
                                             color = MaterialTheme.colorScheme.primary,
                                             modifier = Modifier.weight(1f)
