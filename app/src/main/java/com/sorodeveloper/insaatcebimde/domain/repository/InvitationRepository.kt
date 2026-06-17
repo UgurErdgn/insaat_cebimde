@@ -23,6 +23,7 @@ interface InvitationRepository {
         projectName: String,
         inviteeInviteId: String,
         grantedPermissions: List<String>,
+        grantedDelegablePermissions: List<String>,
         grantedScopes: MemberScopes,
         grantedRoleName: String
     ): Result<Unit>

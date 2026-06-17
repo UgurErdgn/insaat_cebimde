@@ -38,15 +38,22 @@ fun EditMemberDialog(
     currentUserScopes: MemberScopes,
     isSaving: Boolean,
     onDismiss: () -> Unit,
-    onSave: (MemberScopes, Set<Permission>, String) -> Unit
+    onSave: (MemberScopes, Set<Permission>, Set<Permission>, String) -> Unit
 ) {
     var isRestricted by remember { mutableStateOf(member.scopes.restricted) }
     var nodeCategories by remember { mutableStateOf(member.scopes.nodeCategories) }
     var selectedPermissions by remember { mutableStateOf(Permission.fromKeys(member.permissions).toSet()) }
+    var selectedDelegablePermissions by remember { mutableStateOf(Permission.fromKeys(member.delegablePermissions).toSet()) }
     var selectedRoleName by remember { mutableStateOf(member.roleName) }
 
     var showPermissionPicker by remember { mutableStateOf(false) }
+    var showDelegablePermissionPicker by remember { mutableStateOf(false) }
     var showScopeSheet by remember { mutableStateOf(false) }
+
+    // Seçili yetkiler değiştiğinde, devredilebilir yetkilerin içinde seçili olmayanlar varsa çıkaralım (subset kuralı)
+    LaunchedEffect(selectedPermissions) {
+        selectedDelegablePermissions = selectedDelegablePermissions.intersect(selectedPermissions)
+    }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -127,41 +134,105 @@ fun EditMemberDialog(
                         
                         Spacer(Modifier.height(12.dp))
                         
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text("Yetkiler", fontWeight = FontWeight.SemiBold)
-                                    TextButton(onClick = { showPermissionPicker = true }) {
-                                        Text("Düzenle")
+                        if (grantablePermissions.isEmpty()) {
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f)),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f)),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Outlined.Info, contentDescription = null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(20.dp))
+                                    Spacer(Modifier.width(8.dp))
+                                    Text("Size devredilebilir yetki verilmediği için kullanıcının yetkilerini değiştiremezsiniz.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onErrorContainer)
+                                }
+                            }
+                        } else {
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text("Yetkiler", fontWeight = FontWeight.SemiBold)
+                                        TextButton(onClick = { showPermissionPicker = true }) {
+                                            Text("Düzenle")
+                                        }
+                                    }
+                                    
+                                    if (selectedPermissions.isEmpty()) {
+                                        Text("Hiçbir yetki seçilmedi (Sadece salt okunur).", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline)
+                                    } else {
+                                        FlowRow(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            selectedPermissions.forEach { perm ->
+                                                InputChip(
+                                                    selected = true,
+                                                    onClick = {
+                                                        selectedPermissions = selectedPermissions - perm
+                                                    },
+                                                    label = { Text(perm.displayName, style = MaterialTheme.typography.labelSmall) },
+                                                    trailingIcon = { Icon(Icons.Filled.Close, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                                                )
+                                            }
+                                        }
                                     }
                                 }
-                                
-                                if (selectedPermissions.isEmpty()) {
-                                    Text("Hiçbir yetki seçilmedi (Sadece salt okunur).", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline)
-                                } else {
-                                    FlowRow(
+                            }
+                        }
+
+                        if (Permission.INVITE in selectedPermissions) {
+                            Spacer(Modifier.height(12.dp))
+                            
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Row(
                                         modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        selectedPermissions.forEach { perm ->
-                                            InputChip(
-                                                selected = true,
-                                                onClick = {
-                                                    selectedPermissions = selectedPermissions - perm
-                                                },
-                                                label = { Text(perm.displayName, style = MaterialTheme.typography.labelSmall) },
-                                                trailingIcon = { Icon(Icons.Filled.Close, contentDescription = null, modifier = Modifier.size(16.dp)) }
-                                            )
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Icon(Icons.Outlined.Security, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary, modifier = Modifier.size(20.dp))
+                                            Spacer(Modifier.width(8.dp))
+                                            Text("Devredilebilir Yetkiler", fontWeight = FontWeight.SemiBold)
+                                        }
+                                        TextButton(onClick = { showDelegablePermissionPicker = true }) {
+                                            Text("Düzenle")
+                                        }
+                                    }
+                                    
+                                    if (selectedDelegablePermissions.isEmpty()) {
+                                        Text("Kullanıcı herhangi bir yetkisini başkasına devredemez.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline)
+                                    } else {
+                                        FlowRow(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            selectedDelegablePermissions.forEach { perm ->
+                                                InputChip(
+                                                    selected = true,
+                                                    onClick = {
+                                                        selectedDelegablePermissions = selectedDelegablePermissions - perm
+                                                    },
+                                                    label = { Text(perm.displayName, style = MaterialTheme.typography.labelSmall) },
+                                                    trailingIcon = { Icon(Icons.Filled.Close, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -345,6 +416,7 @@ fun EditMemberDialog(
                                 onSave(
                                     MemberScopes(restricted = isRestricted, nodeCategories = nodeCategories),
                                     selectedPermissions,
+                                    selectedDelegablePermissions,
                                     selectedRoleName
                                 )
                             },
@@ -373,6 +445,18 @@ fun EditMemberDialog(
             onConfirm = { selected ->
                 selectedPermissions = selected
                 showPermissionPicker = false
+            }
+        )
+    }
+
+    if (showDelegablePermissionPicker) {
+        PermissionPickerDialog(
+            grantablePermissions = grantablePermissions.intersect(selectedPermissions),
+            selectedPermissions = selectedDelegablePermissions,
+            onDismiss = { showDelegablePermissionPicker = false },
+            onConfirm = { selected ->
+                selectedDelegablePermissions = selected
+                showDelegablePermissionPicker = false
             }
         )
     }

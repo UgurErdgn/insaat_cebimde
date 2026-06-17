@@ -242,12 +242,13 @@ fun ProjectDetailScreen(
                     availableCategories = viewModel.availableCategories.value,
                     isSaving = invitationUiState.isSaving,
                     onDismiss = { showInviteDialog = false },
-                    onSend = { inviteeId, permissions, scopes, roleName ->
+                    onSend = { inviteeId, permissions, delegablePermissions, scopes, roleName ->
                         invitationViewModel.sendInvitation(
                             projectId = projectId,
                             projectName = project?.name ?: "",
                             inviteeInviteId = inviteeId,
                             permissions = permissions,
+                            delegablePermissions = delegablePermissions,
                             scopes = scopes,
                             roleName = roleName
                         )
@@ -266,11 +267,12 @@ fun ProjectDetailScreen(
                     currentUserScopes = membersUiState.currentUserMember!!.scopes,
                     isSaving = membersUiState.isSaving,
                     onDismiss = { memberToEdit = null },
-                    onSave = { newScopes, newPermissions, newRoleName ->
+                    onSave = { newScopes, newPermissions, newDelegablePermissions, newRoleName ->
                         membersViewModel.updateMemberPermissions(
                             targetUserId = memberToEdit!!.uid,
-                            newScopes = newScopes,
                             newPermissions = com.sorodeveloper.insaatcebimde.domain.model.Permission.toKeys(newPermissions),
+                            newDelegablePermissions = com.sorodeveloper.insaatcebimde.domain.model.Permission.toKeys(newDelegablePermissions),
+                            newScopes = newScopes,
                             newRoleName = newRoleName
                         )
                         memberToEdit = null

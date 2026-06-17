@@ -155,108 +155,94 @@ private fun MemberCard(
 ) {
     var showRemoveConfirm by remember { mutableStateOf(false) }
 
-    Card(
+    val isOwner = member.isOwner
+    
+    // Premium görünüm için Elevation ve Border optimizasyonu
+    ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (member.isOwner)
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-            else
-                MaterialTheme.colorScheme.surfaceContainerLow
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (member.isOwner) 4.dp else 1.dp)
+        elevation = CardDefaults.elevatedCardElevation(
+            defaultElevation = if (isOwner) 4.dp else 1.dp
+        )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                // Avatar
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .clip(CircleShape)
-                        .background(
-                            if (member.isOwner) {
-                                Brush.linearGradient(
-                                    listOf(
-                                        Color(0xFFFFD700), // Altın
-                                        Color(0xFFFFA500)  // Turuncu
-                                    )
-                                )
-                            } else {
-                                Brush.linearGradient(
-                                    listOf(
-                                        MaterialTheme.colorScheme.primary,
-                                        MaterialTheme.colorScheme.tertiary
-                                    )
-                                )
-                            }
-                        ),
-                    contentAlignment = Alignment.Center
+                // Avatar (Daha modern, karmaşık gradientler yerine sade)
+                val avatarColor = if (isOwner) Color(0xFFF59E0B) else MaterialTheme.colorScheme.primary
+                val avatarText = member.displayName.split(" ").take(2).mapNotNull { it.firstOrNull()?.uppercase() }.joinToString("")
+                
+                Surface(
+                    shape = CircleShape,
+                    color = avatarColor.copy(alpha = 0.15f),
+                    modifier = Modifier.size(46.dp)
                 ) {
-                    Text(
-                        text = member.displayName
-                            .split(" ")
-                            .take(2)
-                            .mapNotNull { it.firstOrNull()?.uppercase() }
-                            .joinToString(""),
-                        style = MaterialTheme.typography.titleSmall.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            text = avatarText.ifEmpty { "?" },
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = avatarColor
+                            )
                         )
-                    )
+                    }
                 }
-                Spacer(Modifier.width(12.dp))
+                Spacer(Modifier.width(14.dp))
 
                 // İsim & Rol
                 Column(modifier = Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = member.displayName.ifEmpty { "İsimsiz Kullanıcı" },
-                            style = MaterialTheme.typography.titleSmall.copy(
-                                fontWeight = FontWeight.SemiBold
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
                             ),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                         if (isCurrentUser) {
-                            Spacer(Modifier.width(6.dp))
+                            Spacer(Modifier.width(8.dp))
                             Surface(
-                                shape = RoundedCornerShape(6.dp),
-                                color = MaterialTheme.colorScheme.tertiaryContainer
+                                shape = RoundedCornerShape(4.dp),
+                                color = MaterialTheme.colorScheme.secondaryContainer
                             ) {
                                 Text(
                                     "Sen",
                                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                                     style = MaterialTheme.typography.labelSmall.copy(
-                                        fontWeight = FontWeight.Medium,
-                                        color = MaterialTheme.colorScheme.onTertiaryContainer
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer
                                     )
                                 )
                             }
                         }
                     }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        if (member.isOwner) {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp)) {
+                        if (isOwner) {
                             Icon(
                                 Icons.Filled.Star,
                                 contentDescription = null,
                                 modifier = Modifier.size(14.dp),
-                                tint = Color(0xFFFFD700)
+                                tint = Color(0xFFF59E0B)
                             )
                             Spacer(Modifier.width(4.dp))
                         }
                         Text(
                             text = member.roleName.ifEmpty { "Çalışan" },
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (member.isOwner)
-                                Color(0xFFB8860B)
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = if (isOwner)
+                                Color(0xFFD97706)
                             else
-                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
 
                 // Yönetim butonları
-                if (canManage && hasManagePermission && !isCurrentUser && !member.isOwner) {
+                if (canManage && hasManagePermission && !isCurrentUser && !isOwner) {
                     IconButton(onClick = onEdit, enabled = !isSaving) {
                         Icon(
                             Icons.Outlined.Edit,
@@ -279,46 +265,63 @@ private fun MemberCard(
                 }
             }
 
-            // Yetki etiketleri (ilk 4 yetki)
-            if (member.permissions.isNotEmpty()) {
-                Spacer(Modifier.height(10.dp))
-                Row(
+            // Yetki etiketleri (FlowRow ile sade ve okunabilir)
+            val memberPerms = member.permissionSet().toList()
+            if (memberPerms.isNotEmpty()) {
+                Spacer(Modifier.height(14.dp))
+                @OptIn(ExperimentalLayoutApi::class)
+                FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    val displayPerms = Permission.fromKeys(member.permissions).take(4)
-                    displayPerms.forEach { perm ->
+                    memberPerms.forEach { perm ->
                         Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                            shape = RoundedCornerShape(6.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                            border = androidx.compose.foundation.BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant)
                         ) {
                             Text(
                                 text = perm.displayName,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                 style = MaterialTheme.typography.labelSmall.copy(
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontWeight = FontWeight.Medium
                                 ),
                                 maxLines = 1
                             )
                         }
                     }
-                    if (member.permissions.size > 4) {
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
-                        ) {
-                            Text(
-                                text = "+${member.permissions.size - 4}",
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                        }
-                    }
+                }
+            }
+            
+            // Devredilebilir Yetkiler Etiketi
+            val delegablePerms = member.delegablePermissionSet().toList()
+            if (delegablePerms.isNotEmpty() && Permission.INVITE in memberPerms) {
+                Spacer(Modifier.height(8.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(vertical = 2.dp)
+                ) {
+                    Icon(
+                        Icons.Outlined.Share,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                        tint = MaterialTheme.colorScheme.secondary
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        text = if (isOwner) "Tüm Yetkileri Devredebilir" else "${delegablePerms.size} Yetki Devredebilir",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            color = MaterialTheme.colorScheme.secondary,
+                            fontWeight = FontWeight.Medium
+                        )
+                    )
                 }
             }
 
             // Kapsam bilgisi
-            Spacer(Modifier.height(6.dp))
+            Spacer(Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     Icons.Outlined.FilterAlt,
@@ -326,14 +329,14 @@ private fun MemberCard(
                     modifier = Modifier.size(14.dp),
                     tint = MaterialTheme.colorScheme.outline
                 )
-                Spacer(Modifier.width(4.dp))
+                Spacer(Modifier.width(6.dp))
                 Text(
                     text = if (member.scopes.restricted) {
-                        "${member.scopes.nodeCategories.size} mülk/iş kısıtlaması"
+                        "${member.scopes.nodeCategories.size} Mülk/İş Kısıtlaması"
                     } else {
                         "Projeye Tam Erişim"
                     },
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
                     color = MaterialTheme.colorScheme.outline
                 )
             }

@@ -49,8 +49,11 @@ export const updateMemberPermissions = onCall(async (request) => {
     throw new HttpsError("not-found", "Hedef kullanıcı bu projenin üyesi değil.");
   }
 
+  const requesterIsOwner = requesterMember.isOwner === true || requesterMember.owner === true;
+  const targetIsOwner = targetMember.isOwner === true || targetMember.owner === true;
+
   // Owner koruması — Owner'a kimse dokunamaz
-  if (targetMember.isOwner) {
+  if (targetIsOwner) {
     throw new HttpsError(
       "permission-denied",
       "Proje sahibinin yetkileri değiştirilemez."
@@ -58,30 +61,41 @@ export const updateMemberPermissions = onCall(async (request) => {
   }
 
   const requesterPerms: string[] = requesterMember.permissions || [];
+  const requesterDelegablePerms: string[] = requesterMember.delegablePermissions || [];
+  const newDelegablePermissions: string[] = request.data.newDelegablePermissions || [];
 
-  // MANAGE_MEMBERS yetkisi kontrolü (Owner tüm yetkilere sahip)
-  if (!requesterMember.isOwner && !requesterPerms.includes("MANAGE_MEMBERS")) {
+  // 1. MANAGE_MEMBERS kontrolü
+  if (!requesterIsOwner && !requesterPerms.includes("MANAGE_MEMBERS")) {
     throw new HttpsError(
       "permission-denied",
-      "Üye yönetimi yetkiniz bulunmuyor."
+      "Üye yetkilerini düzenleme izniniz yok (MANAGE_MEMBERS eksik)."
     );
   }
 
-  // Subset kontrolü — Yeni yetkilerin tamamı requester'ın yetkilerinde olmalı
-  if (!requesterMember.isOwner) {
-    const invalidPerms = (newPermissions as string[]).filter(
-      (p: string) => !requesterPerms.includes(p)
-    );
+  // 2. Subset Kontrolü: Requester, sahip olmadığı bir permission'ı başkasına veremez
+  if (!requesterIsOwner) {
+    const invalidPerms = (newPermissions as string[]).filter((p) => !requesterDelegablePerms.includes(p));
     if (invalidPerms.length > 0) {
       throw new HttpsError(
         "permission-denied",
-        `Sahip olmadığınız yetkileri atayamazsınız: ${invalidPerms.join(", ")}`
+        `Devredilebilir yetkilerinizde olmayan izinleri atayamazsınız: ${invalidPerms.join(", ")}`
+      );
+    }
+  }
+
+  // 3. Subset Kontrolü: Requester, sahip olmadığı bir delegablePermission'ı başkasına veremez
+  if (!requesterIsOwner) {
+    const invalidDelegablePerms = newDelegablePermissions.filter((p) => !requesterDelegablePerms.includes(p));
+    if (invalidDelegablePerms.length > 0) {
+      throw new HttpsError(
+        "permission-denied",
+        `Devredilebilir yetkilerinizde olmayan devir izinlerini atayamazsınız: ${invalidDelegablePerms.join(", ")}`
       );
     }
   }
 
   // Scope Subset Kontrolü
-  if (!requesterMember.isOwner) {
+  if (!requesterIsOwner) {
     const requesterScopes = requesterMember.scopes || { isRestricted: false, nodeCategories: {} };
     const reqScopes = newScopes || targetMember.scopes || { isRestricted: false, nodeCategories: {} };
 
@@ -131,6 +145,7 @@ export const updateMemberPermissions = onCall(async (request) => {
   const updatedMember = {
     ...targetMember,
     permissions: newPermissions,
+    delegablePermissions: newDelegablePermissions,
     scopes: newScopes || targetMember.scopes || {isRestricted: false, nodeCategories: {}},
     roleName: newRoleName || targetMember.roleName,
   };
@@ -202,8 +217,11 @@ export const removeMember = onCall(async (request) => {
     throw new HttpsError("not-found", "Hedef kullanıcı bu projenin üyesi değil.");
   }
 
+  const requesterIsOwner = requesterMember.isOwner === true || requesterMember.owner === true;
+  const targetIsOwner = targetMember.isOwner === true || targetMember.owner === true;
+
   // Owner koruması
-  if (targetMember.isOwner) {
+  if (targetIsOwner) {
     throw new HttpsError(
       "permission-denied",
       "Proje sahibi projeden çıkarılamaz."
@@ -213,7 +231,7 @@ export const removeMember = onCall(async (request) => {
   const requesterPerms: string[] = requesterMember.permissions || [];
 
   // MANAGE_MEMBERS yetkisi kontrolü
-  if (!requesterMember.isOwner && !requesterPerms.includes("MANAGE_MEMBERS")) {
+  if (!requesterIsOwner && !requesterPerms.includes("MANAGE_MEMBERS")) {
     throw new HttpsError(
       "permission-denied",
       "Üye yönetimi yetkiniz bulunmuyor."
@@ -221,7 +239,7 @@ export const removeMember = onCall(async (request) => {
   }
 
   // Subset kontrolü — Hedefin tüm yetkileri requester'da olmalı
-  if (!requesterMember.isOwner) {
+  if (!requesterIsOwner) {
     const targetPerms: string[] = targetMember.permissions || [];
     const cantRemove = targetPerms.filter(
       (p: string) => !requesterPerms.includes(p)

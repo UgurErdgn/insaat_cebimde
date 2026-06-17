@@ -632,6 +632,7 @@ class ProjectRepositoryImpl @Inject constructor(
         projectId: String,
         targetUserId: String,
         newPermissions: List<String>,
+        newDelegablePermissions: List<String>,
         newScopes: MemberScopes,
         newRoleName: String
     ): Result<Unit> {
@@ -643,6 +644,7 @@ class ProjectRepositoryImpl @Inject constructor(
                 "requesterId" to currentUser.uid,
                 "targetUserId" to targetUserId,
                 "newPermissions" to newPermissions,
+                "newDelegablePermissions" to newDelegablePermissions,
                 "newScopes" to hashMapOf(
                     "isRestricted" to newScopes.restricted,
                     "nodeCategories" to newScopes.nodeCategories

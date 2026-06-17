@@ -64,9 +64,10 @@ export const onInvitationCreated = onDocumentCreated({
     }
 
     const inviterPermissions: string[] = inviterMember.permissions || [];
+    const isOwner = inviterMember.isOwner === true || inviterMember.owner === true;
 
     // 2. INVITE yetkisi var mı?
-    if (!inviterPermissions.includes("INVITE")) {
+    if (!isOwner && !inviterPermissions.includes("INVITE_MEMBERS")) {
       await snapshot.ref.update({
         status: "CANCELLED",
         statusMessage: "Davet gönderme yetkiniz bulunmuyor.",
@@ -76,20 +77,30 @@ export const onInvitationCreated = onDocumentCreated({
       return;
     }
 
-    // 3. Subset kontrolü — Verilen yetkiler, davet edenin yetkilerinin alt kümesi mi?
+    // 3. Subset kontrolü — Verilen yetkiler, davet edenin DEVREDEBİLECEĞİ yetkilerinin alt kümesi mi?
+    const inviterDelegablePermissions: string[] = inviterMember.delegablePermissions || [];
     const requestedPerms: string[] = grantedPermissions || [];
-    const invalidPerms = requestedPerms.filter(
-      (p: string) => !inviterPermissions.includes(p)
-    );
+    const requestedDelegablePerms: string[] = invitationData.grantedDelegablePermissions || [];
+    let invalidPerms: string[] = [];
+
+    if (!isOwner) {
+      invalidPerms = requestedPerms.filter(
+        (p: string) => !inviterDelegablePermissions.includes(p)
+      );
+      const invalidDelegables = requestedDelegablePerms.filter(
+        (p: string) => !inviterDelegablePermissions.includes(p)
+      );
+      invalidPerms.push(...invalidDelegables);
+    }
 
     if (invalidPerms.length > 0) {
       await snapshot.ref.update({
         status: "CANCELLED",
-        statusMessage: `Sahip olmadığınız yetkiler: ${invalidPerms.join(", ")}`,
+        statusMessage: `Devretme izniniz olmayan yetkiler: ${Array.from(new Set(invalidPerms)).join(", ")}`,
         updatedAt: Date.now(),
       });
       logger.warn(
-        `Subset ihlali: ${inviterId} sahip olmadığı yetkileri vermeye çalıştı: ${invalidPerms}`
+        `Subset ihlali: ${inviterId} devretme izni olmadığı yetkileri vermeye çalıştı: ${invalidPerms}`
       );
       return;
     }
@@ -98,7 +109,7 @@ export const onInvitationCreated = onDocumentCreated({
     const inviterScopes = inviterMember.scopes || { isRestricted: false, nodeCategories: {} };
     const requestedScopes = invitationData.grantedScopes || { isRestricted: false, nodeCategories: {} };
 
-    if (inviterScopes.isRestricted) {
+    if (!isOwner && inviterScopes.isRestricted) {
       // Eğer davet eden kısıtlıysa, KESİNLİKLE davet edilen de kısıtlı olmalıdır.
       if (!requestedScopes.isRestricted) {
         await snapshot.ref.update({
@@ -157,7 +168,7 @@ export const onInvitationCreated = onDocumentCreated({
             });
             return;
           }
-          const invalidCats = reqCats.filter((c) => !allowedCats!.includes(c));
+          const invalidCats = reqCats.filter((c: string) => !allowedCats!.includes(c));
           if (invalidCats.length > 0) {
             await snapshot.ref.update({
               status: "CANCELLED",
@@ -213,6 +224,7 @@ export const onInvitationUpdated = onDocumentUpdated({
       inviteeId,
       inviteeName,
       grantedPermissions,
+      grantedDelegablePermissions,
       grantedScopes,
       grantedRoleName,
     } = afterData;
@@ -224,6 +236,7 @@ export const onInvitationUpdated = onDocumentUpdated({
         displayName: inviteeName || "",
         roleName: grantedRoleName || "Çalışan",
         permissions: grantedPermissions || [],
+        delegablePermissions: grantedDelegablePermissions || [],
         scopes: grantedScopes || {isRestricted: false, nodeCategories: {}},
         isOwner: false,
       };

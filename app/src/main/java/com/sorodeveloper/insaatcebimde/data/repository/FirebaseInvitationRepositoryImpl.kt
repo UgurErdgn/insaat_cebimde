@@ -36,6 +36,7 @@ class FirebaseInvitationRepositoryImpl @Inject constructor(
         projectName: String,
         inviteeInviteId: String,
         grantedPermissions: List<String>,
+        grantedDelegablePermissions: List<String>,
         grantedScopes: MemberScopes,
         grantedRoleName: String
     ): Result<Unit> {
@@ -76,6 +77,7 @@ class FirebaseInvitationRepositoryImpl @Inject constructor(
                 inviteeName = inviteeName,
                 status = InvitationStatus.PENDING.name,
                 grantedPermissions = grantedPermissions,
+                grantedDelegablePermissions = grantedDelegablePermissions,
                 grantedScopes = grantedScopes,
                 grantedRoleName = grantedRoleName
             )

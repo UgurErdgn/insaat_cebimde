@@ -83,6 +83,7 @@ class MembersViewModel @Inject constructor(
     fun updateMemberPermissions(
         targetUserId: String,
         newPermissions: List<String>,
+        newDelegablePermissions: List<String>,
         newScopes: MemberScopes,
         newRoleName: String
     ) {
@@ -95,6 +96,7 @@ class MembersViewModel @Inject constructor(
                 projectId = projectId,
                 targetUserId = targetUserId,
                 newPermissions = newPermissions,
+                newDelegablePermissions = newDelegablePermissions,
                 newScopes = newScopes,
                 newRoleName = newRoleName
             )

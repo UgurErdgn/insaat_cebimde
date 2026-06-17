@@ -76,6 +76,7 @@ class ProjectDetailViewModel @Inject constructor(
         targetUserId: String,
         newScopes: com.sorodeveloper.insaatcebimde.domain.model.MemberScopes,
         newPermissions: Set<com.sorodeveloper.insaatcebimde.domain.model.Permission>,
+        newDelegablePermissions: Set<com.sorodeveloper.insaatcebimde.domain.model.Permission>,
         newRoleName: String,
         onComplete: (Boolean) -> Unit
     ) {
@@ -84,6 +85,7 @@ class ProjectDetailViewModel @Inject constructor(
                 projectId = projectId,
                 targetUserId = targetUserId,
                 newPermissions = com.sorodeveloper.insaatcebimde.domain.model.Permission.toKeys(newPermissions),
+                newDelegablePermissions = com.sorodeveloper.insaatcebimde.domain.model.Permission.toKeys(newDelegablePermissions),
                 newScopes = newScopes,
                 newRoleName = newRoleName
             )

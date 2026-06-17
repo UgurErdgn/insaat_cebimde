@@ -67,6 +67,7 @@ interface ProjectRepository {
         projectId: String,
         targetUserId: String,
         newPermissions: List<String>,
+        newDelegablePermissions: List<String>,
         newScopes: MemberScopes,
         newRoleName: String
     ): Result<Unit>

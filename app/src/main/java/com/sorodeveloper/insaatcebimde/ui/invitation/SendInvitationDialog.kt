@@ -43,6 +43,7 @@ fun SendInvitationDialog(
     onSend: (
         inviteeId: String,
         permissions: List<String>,
+        delegablePermissions: List<String>,
         scopes: MemberScopes,
         roleName: String
     ) -> Unit
@@ -50,12 +51,14 @@ fun SendInvitationDialog(
     var inviteeId by remember { mutableStateOf("") }
     var selectedRoleName by remember { mutableStateOf("Çalışan") }
     var selectedPermissions by remember { mutableStateOf(setOf<Permission>()) }
+    var selectedDelegablePermissions by remember { mutableStateOf(setOf<Permission>()) }
     
     // Kombine Scope Haritası: Key: NodeId, Value: Kategori Listesi
     var nodeCategories by remember { mutableStateOf(mapOf<String, List<String>>()) }
     var isRestricted by remember { mutableStateOf(true) } // Varsayılan olarak kısıtlı, sonradan "Tümüne İzin Ver" yapılabilir
     
     var showPermissionPicker by remember { mutableStateOf(false) }
+    var showDelegablePermissionPicker by remember { mutableStateOf(false) }
     var showScopeSheet by remember { mutableStateOf(false) }
 
     val grantablePermissions = currentUserMember.grantablePermissions()
@@ -71,6 +74,11 @@ fun SendInvitationDialog(
         if (!isRestricted) {
             nodeCategories = emptyMap()
         }
+    }
+
+    // Seçili yetkiler değiştiğinde, devredilebilir yetkilerin içinde seçili olmayanlar varsa çıkaralım (subset kuralı)
+    LaunchedEffect(selectedPermissions) {
+        selectedDelegablePermissions = selectedDelegablePermissions.intersect(selectedPermissions)
     }
 
     AlertDialog(
@@ -111,7 +119,15 @@ fun SendInvitationDialog(
                             selected = selectedRoleName == roleName,
                             onClick = {
                                 selectedRoleName = roleName
-                                if (roleName != "Özel") selectedPermissions = permissions
+                                if (roleName != "Özel") {
+                                    selectedPermissions = permissions
+                                    // Eğer hazır rol seçildiyse, yönetici rollerinin devretme yetkisini de hazır atayabiliriz
+                                    if (Permission.INVITE in permissions) {
+                                        selectedDelegablePermissions = permissions
+                                    } else {
+                                        selectedDelegablePermissions = setOf()
+                                    }
+                                }
                             },
                             label = { Text(roleName, maxLines = 1) },
                             modifier = Modifier.weight(1f)
@@ -119,22 +135,58 @@ fun SendInvitationDialog(
                     }
                 }
 
-                OutlinedCard(
-                    onClick = { showPermissionPicker = true },
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                if (grantablePermissions.isEmpty()) {
+                    OutlinedCard(
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f)),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f))
                     ) {
-                        Icon(Icons.Outlined.Shield, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("Yetkiler", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium))
-                            Text(if (selectedPermissions.isEmpty()) "Yetki seçilmedi" else "${selectedPermissions.size} yetki seçili", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                        Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Outlined.Info, contentDescription = null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(20.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text("Size devredilebilir yetki verilmediği için yeni kullanıcıya yetki atayamazsınız.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onErrorContainer)
                         }
-                        Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.outline)
+                    }
+                } else {
+                    OutlinedCard(
+                        onClick = { showPermissionPicker = true },
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Outlined.Shield, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text("Yetkiler", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium))
+                                Text(if (selectedPermissions.isEmpty()) "Yetki seçilmedi" else "${selectedPermissions.size} yetki seçili", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                            }
+                            Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.outline)
+                        }
+                    }
+                }
+
+                if (Permission.INVITE in selectedPermissions) {
+                    OutlinedCard(
+                        onClick = { showDelegablePermissionPicker = true },
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Outlined.Security, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary, modifier = Modifier.size(20.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text("Devredilebilir Yetkiler", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium))
+                                Text(if (selectedDelegablePermissions.isEmpty()) "Yetki devri yok" else "${selectedDelegablePermissions.size} yetki devredilebilir", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                            }
+                            Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.outline)
+                        }
                     }
                 }
 
@@ -201,6 +253,7 @@ fun SendInvitationDialog(
                     onSend(
                         inviteeId.trim(),
                         Permission.toKeys(selectedPermissions),
+                        Permission.toKeys(selectedDelegablePermissions),
                         MemberScopes(restricted = isRestricted, nodeCategories = nodeCategories),
                         selectedRoleName
                     )
@@ -227,6 +280,20 @@ fun SendInvitationDialog(
             onConfirm = { selected ->
                 selectedPermissions = selected
                 showPermissionPicker = false
+            }
+        )
+    }
+
+    if (showDelegablePermissionPicker) {
+        PermissionPickerDialog(
+            // Sadece seçili olan yetkiler devredilebilir (Subset kuralı)
+            // Ama aynı zamanda kendi devredilebilirlik listemizde de olmalı!
+            grantablePermissions = grantablePermissions.intersect(selectedPermissions),
+            selectedPermissions = selectedDelegablePermissions,
+            onDismiss = { showDelegablePermissionPicker = false },
+            onConfirm = { selected ->
+                selectedDelegablePermissions = selected
+                showDelegablePermissionPicker = false
             }
         )
     }
@@ -395,7 +462,7 @@ fun PermissionPickerDialog(
         shape = RoundedCornerShape(20.dp),
         title = { Text("Yetkileri Seçin", fontWeight = FontWeight.Bold) },
         text = {
-            Column {
+            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                 grantablePermissions.forEach { permission ->
                     Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(checked = permission in tempSelected, onCheckedChange = { checked -> tempSelected = if (checked) tempSelected + permission else tempSelected - permission })

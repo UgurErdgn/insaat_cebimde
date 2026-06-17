@@ -24,11 +24,21 @@ data class MemberInfo(
     val displayName: String = "",
     val roleName: String = "", // UI'da gösterilecek etiket (Şef, Usta, Kalfa vb.)
     val permissions: List<String> = emptyList(),
+    val delegablePermissions: List<String> = emptyList(),
     val scopes: MemberScopes = MemberScopes(),
-    val isOwner: Boolean = false
+    @get:PropertyName("owner")
+    @set:PropertyName("owner")
+    var isOwner: Boolean = false
 ) {
-    /** Firestore'dan gelen String listesini Permission Set'ine çevirir */
-    fun permissionSet(): Set<Permission> = Permission.fromKeys(permissions)
+    /** Firestore'dan gelen String listesini Permission Set'ine çevirir. Owner ise tüm yetkileri döner. */
+    fun permissionSet(): Set<Permission> {
+        return if (isOwner) Permission.entries.toSet() else Permission.fromKeys(permissions)
+    }
+
+    /** Firestore'dan gelen Devredilebilir String listesini Permission Set'ine çevirir. Owner ise tüm yetkileri döner. */
+    fun delegablePermissionSet(): Set<Permission> {
+        return if (isOwner) Permission.entries.toSet() else Permission.fromKeys(delegablePermissions)
+    }
 
     /** Bu üyenin belirli bir yetkisi var mı? */
     fun hasPermission(permission: Permission): Boolean = permission.key in permissions
@@ -37,15 +47,17 @@ data class MemberInfo(
     fun canManage(other: MemberInfo): Boolean {
         if (isOwner) return true // Owner her şeyi yönetebilir
         if (other.isOwner) return false // Kimse Owner'ı yönetemez
-        // B'nin tüm yetkileri A'nın alt kümesi mi?
-        return other.permissionSet().all { it in permissionSet() }
+        // B'nin tüm yetkileri A'nın DEVREDEBİLECEĞİ yetkilerin alt kümesi mi?
+        return other.permissionSet().all { it in delegablePermissionSet() }
     }
 
     /**
      * A'nın B'ye verebileceği yetkilerin listesi.
-     * A sadece kendi sahip olduğu yetkileri verebilir.
+     * Owner ise tüm yetkiler. Değilse, sadece devretmesine izin verilen yetkiler.
      */
-    fun grantablePermissions(): Set<Permission> = permissionSet()
+    fun grantablePermissions(): Set<Permission> {
+        return if (isOwner) Permission.entries.toSet() else delegablePermissionSet()
+    }
 }
 
 

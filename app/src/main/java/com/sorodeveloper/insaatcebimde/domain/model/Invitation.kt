@@ -31,6 +31,7 @@ data class Invitation(
     val inviteeName: String = "",        // Davet edilen kişinin adı (denormalize)
     val status: String = InvitationStatus.PENDING.name,
     val grantedPermissions: List<String> = emptyList(),
+    val grantedDelegablePermissions: List<String> = emptyList(),
     val grantedScopes: MemberScopes = MemberScopes(),
     val grantedRoleName: String = "",    // Davet edenin atadığı rol etiketi
     val statusMessage: String = "",      // İptal/Red sebebi (opsiyonel)

@@ -119,6 +119,7 @@ class InvitationViewModel @Inject constructor(
         projectName: String,
         inviteeInviteId: String,
         permissions: List<String>,
+        delegablePermissions: List<String>,
         scopes: MemberScopes,
         roleName: String
     ) {
@@ -130,6 +131,7 @@ class InvitationViewModel @Inject constructor(
                 projectName = projectName,
                 inviteeInviteId = inviteeInviteId,
                 grantedPermissions = permissions,
+                grantedDelegablePermissions = delegablePermissions,
                 grantedScopes = scopes,
                 grantedRoleName = roleName
             )
